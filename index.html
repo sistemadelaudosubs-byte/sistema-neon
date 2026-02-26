@@ -446,6 +446,11 @@
                 return { color: `text-[${NEON_GREEN}]`, icon: 'circle-check', text: 'Normal' };
             };
 
+            const handleOpenInventoryModal = (item = null) => {
+                setEditingItem(item);
+                setShowInventoryModal(true);
+            };
+
             const downloadPdf = () => {
                 if (!window.html2pdf) return alert("Aguarde o carregamento do gerador de PDF.");
                 setIsGeneratingPdf(true);
@@ -664,8 +669,8 @@
                                                         <tr key={item.id} className="border-b border-gray-800 hover:bg-white/5">
                                                             <td className="py-3 px-2">{item.date}</td><td className="py-3 px-2">{item.gmus}</td><td className="py-3 px-2">{item.pressure}</td><td className="py-3 px-2">{item.hgt}</td><td className="py-3 px-2">{item.weight}</td><td className="py-3 px-2">{item.height}</td><td className="py-3 px-2">{item.professional}</td>
                                                             <td className="py-3 px-2 text-right flex justify-end gap-3">
-                                                                <button onClick={() => setEditingIndicator(item)} className="text-blue-400 hover:text-white" title="Editar"><Icon name="pen-to-square" size={16}/></button>
-                                                                <button onClick={() => handleDeleteIndicator(item.id)} className="text-red-500 hover:text-white" title="Excluir"><Icon name="trash-can" size={16}/></button>
+                                                                <button onClick={() => setEditingIndicator(item)} className="text-blue-400 hover:text-white p-1" title="Editar"><Icon name="pen-to-square" size={16}/></button>
+                                                                <button onClick={() => handleDeleteIndicator(item.id)} className="text-red-500 hover:text-white p-1" title="Excluir"><Icon name="trash-can" size={16}/></button>
                                                             </td>
                                                         </tr>
                                                     ))
