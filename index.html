@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratório Neon</title>
+    
+    <!-- Tailwind CSS (Estilos e Cores) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome (Ícones) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- html2pdf (Gerador de PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel (Tradutor de React para o Navegador) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Supabase (Banco de Dados) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body { margin: 0; background-color: #0a0a0a; color: white; font-family: monospace; }
+        /* Oculta os scrollbars, mas permite rolar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #39ff14; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <!-- Local onde o sistema vai rodar -->
+    <div id="root"></div>
+
+    <!-- CÓDIGO DO SISTEMA -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // ============================================================================
+        // CONFIGURAÇÃO DO SUPABASE (CHAVES INSERIDAS)
+        // ============================================================================
+        const SUPABASE_URL = 'https://ohzbkwpoqeukbdyhoymf.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'sb_publishable_v77SIohURbjCbolb3Glrtw_9fiHp6Mv';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- ESTILOS GLOBAIS E UTILITÁRIOS ---
+        const NEON_GREEN = '#39ff14';
+        const DARK_BG = '#0a0a0a';
+
+        const styles = {
+            neonText: `text-[#39ff14] drop-shadow-[0_0_5px_#39ff14]`,
+            neonButton: `bg-transparent border border-[#39ff14] text-[#39ff14] hover:bg-[#39ff14] hover:text-black transition-all duration-300 shadow-[0_0_10px_#39ff14] hover:shadow-[0_0_20px_#39ff14] font-bold uppercase tracking-wider`,
+            glassCard: `bg-black/80 backdrop-blur-md border border-[#39ff14]/30 rounded-xl p-6 shadow-[0_0_15px_rgba(57,255,20,0.1)]`,
+            input: `bg-black/50 border border-[#39ff14]/50 text-white rounded p-2 focus:outline-none focus:border-[#39ff14] focus:shadow-[0_0_5px_#39ff14] w-full uppercase`,
+        };
+
+        // Componente Auxiliar de Ícones (FontAwesome)
+        const Icon = ({ name, size = 16, color = "currentColor", className = "" }) => (
+            <i className={`fa-${name === 'calendar' ? 'regular' : 'solid'} fa-${name} ${className}`} style={{ fontSize: `${size}px`, color }}></i>
+        );
+
+        // --- COMPONENTE DE NEVE ---
+        const Snowfall = () => {
+            const [flakes, setFlakes] = useState([]);
+            useEffect(() => {
+                const initialFlakes = Array.from({ length: 50 }).map(() => ({
+                    id: Math.random(),
+                    left: Math.random() * 100,
+                    animationDuration: Math.random() * 3 + 2 + 's',
+                    opacity: Math.random(),
+                    size: Math.random() * 10 + 10 + 'px'
+                }));
+                setFlakes(initialFlakes);
+                const interval = setInterval(() => {
+                    setFlakes(prev => prev.map(f => ({ ...f, left: f.left + (Math.random() - 0.5) * 2 })));
+                }, 100);
+                return () => clearInterval(interval);
+            }, []);
+
+            return (
+                <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+                    {flakes.map((flake) => (
+                        <div key={flake.id} className="absolute text-white/80"
+                            style={{
+                                left: `${flake.left}%`, top: -20, fontSize: flake.size, opacity: flake.opacity,
+                                animation: `fall ${flake.animationDuration} linear infinite`
+                            }}>❄</div>
+                    ))}
+                    <style>{`@keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg); } 100% { transform: translateY(110vh) rotate(360deg); } }`}</style>
+                </div>
+            );
+        };
+
+        // --- LAYOUTS DE IMPRESSÃO (RÉPLICA DOS ANEXOS) ---
+        const PrintLayout = ({ data, type, id, inventory }) => {
+            if (!data) return null;
+
+            const Header = () => (
+                <div className="flex justify-between items-center border-b-2 border-black pb-4 mb-4">
+                    <div className="flex items-center gap-4">
+                        <div className="h-16 w-16 flex items-center justify-center border-2 border-black rounded-lg bg-gray-50">
+                            <Icon name="shield-halved" size={40} color="black" className="opacity-80" />
+                        </div>
+                        <div>
+                            <h1 className="font-bold text-sm uppercase">Município de Novo Hamburgo</h1>
+                            <h2 className="text-xs uppercase">Estado do Rio Grande do Sul</h2>
+                            <h3 className="text-xs uppercase">Secretaria Municipal de Saúde</h3>
+                        </div>
+                    </div>
+                    <div className="text-right"><h1 className="text-4xl font-black tracking-tighter text-gray-800">SMS</h1></div>
+                </div>
+            );
+
+            const Footer = () => (
+                <div className="mt-auto text-center text-xs text-gray-500 border-t border-gray-300 pt-2 pb-4">
+                    <p>www.novohamburgo.rs.gov.br</p>
+                    <p>Centro Administrativo Leopoldo Petry | Rua Guia Lopes, 4201 - Canudos - 93548-013 | Novo Hamburgo - RS</p>
+                    <p>Este laudo possui caráter meramente informativo. Não substitui o diagnóstico médico.</p>
+                </div>
+            );
+
+            const SignatureBlock = () => (
+                <div className="mt-12 space-y-6">
+                    <div className="flex justify-between">
+                        <div className="w-1/2 pr-4">
+                            <p className="font-bold mb-8">Responsável Técnico/Executor:</p>
+                            <div className="border-t border-black pt-1 uppercase">{data.technician}</div>
+                        </div>
+                        <div className="w-1/2 pl-4">
+                            <p className="font-bold mb-8">Assinatura e Carimbo:</p>
+                            <div className="border-t border-black pt-1"></div>
+                        </div>
+                    </div>
+                    <div><p>Data: <span className="border-b border-black px-4">{new Date().toLocaleDateString('pt-BR')}</span></p></div>
+                </div>
+            );
+
+            const getLot = (type) => data.lot || inventory.find(i => i.type?.toUpperCase() === type.toUpperCase())?.lot || '---';
+            const getValidity = (type) => data.validity || inventory.find(i => i.type?.toUpperCase() === type.toUpperCase())?.validity || '---';
+
+            return (
+                <div id={id} className="bg-white text-black p-12 flex flex-col relative uppercase" style={{ width: '210mm', height: '297mm', boxSizing: 'border-box', overflow: 'hidden' }}>
+                    {type === 'dengue' && (
+                        <React.Fragment>
+                            <Header />
+                            <h1 className="text-center font-bold text-xl mb-1 mt-4">TESTE DE ANTÍGENO PARA DENGUE - NS1</h1>
+                            <h2 className="text-center text-sm mb-6">(Vida Rapid Test - Vida Biotecnologia)</h2>
+                            <div className="space-y-3 text-sm mb-6">
+                                <div className="border-b border-gray-400 pb-1 flex"><span className="font-bold w-40">Nome do usuário:</span> {data.patientName}</div>
+                                <div className="border-b border-gray-400 pb-1 flex"><span className="font-bold w-40">Identidade/CPF:</span> {data.document}</div>
+                                <div className="flex gap-4 border-b border-gray-400 pb-1"><span className="flex-1"><span className="font-bold">Data de Nascimento:</span> {data.dob}</span><span className="flex-1"><span className="font-bold">Sexo:</span> {data.sex}</span></div>
+                                <div className="border-b border-gray-400 pb-1 flex"><span className="font-bold w-48">Unidade de realização:</span> {data.unit}</div>
+                                <div className="border-b border-gray-400 pb-1 flex"><span className="font-bold w-48">Data início sintomas:</span> {data.symptomsDate}</div>
+                                <div className="border-b border-gray-400 pb-1 flex"><span className="font-bold w-48">Data da coleta:</span> {data.collectionDate}</div>
+                            </div>
+                            <div className="border-2 border-black mb-6">
+                                <div className="border-b border-black p-2 font-bold bg-gray-100">Amostra: punção digital</div>
+                                <div className="border-b border-black p-2 flex justify-between"><span><span className="font-bold">Teste:</span> Vida Rapid Test - Dengue NS1</span><span><span className="font-bold">Lote:</span> {getLot('dengue')}</span><span><span className="font-bold">Validade:</span> {getValidity('dengue')}</span></div>
+                                <div className="p-2 border-b border-black font-bold text-lg bg-gray-100">RESULTADO DO TESTE:</div>
+                                <div className="p-4 space-y-2 text-lg">
+                                    <div className="flex items-center gap-2"><span className="font-bold text-xl">({data.result?.toUpperCase() === 'POSITIVO' ? 'X' : ' '})</span> POSITIVO</div>
+                                    <div className="flex items-center gap-2"><span className="font-bold text-xl">({data.result?.toUpperCase() === 'NEGATIVO' ? 'X' : ' '})</span> NEGATIVO</div>
+                                    <div className="flex items-center gap-2"><span className="font-bold text-xl">({data.result?.toUpperCase() === 'INCONCLUSIVO' ? 'X' : ' '})</span> INCONCLUSIVO</div>
+                                </div>
+                            </div>
+                            <div className="text-justify text-xs space-y-2 mb-8">
+                                <p className="font-bold">⇨ Em caso de resultado NEGATIVO ou INCONCLUSIVO: REALIZAR NOVA COLETA A PARTIR DO 7º DIA DO INÍCIO DOS SINTOMAS para análise de anticorpos IgM.</p>
+                                <p><span className="font-bold">Nota:</span> O resultado deste teste deve ser sempre considerado no contexto da clínica. Testes rápidos (punção digital) devem ser utilizados apenas como triagem. Sensibilidade relativa: 95,8%, Especificidade relativa: 96,1%.</p>
+                            </div>
+                            <SignatureBlock /><Footer />
+                        </React.Fragment>
+                    )}
+
+                    {type === 'covid' && (
+                        <React.Fragment>
+                            <Header />
+                            <div className="border-t-2 border-b-2 border-black py-1 mb-6 mt-4"><h1 className="text-center font-bold text-xl uppercase">Laudo</h1></div>
+                            <div className="border-2 border-black mb-6">
+                                <div className="bg-gray-200 border-b-2 border-black p-2 text-center font-bold">TESTE RÁPIDO DE ANTÍGENO COVID-19</div>
+                                <div className="p-2 space-y-2">
+                                    <div className="flex justify-between"><span><span className="font-bold">Nome do paciente:</span> {data.patientName}</span><span><span className="font-bold">Cidade:</span> NOVO HAMBURGO</span></div>
+                                    <div className="flex justify-between"><span><span className="font-bold">Sexo:</span> {data.sex}</span><span><span className="font-bold">Data de Nascimento:</span> {data.dob}</span></div>
+                                </div>
+                            </div>
+                            <div className="border-l-4 border-black pl-4 mb-6 space-y-2">
+                                <h2 className="font-bold text-lg underline">TESTE</h2>
+                                <p><span className="font-bold">Fabricante:</span> {data.manufacturer || 'ABBOTT PANBIO'}</p>
+                                <p><span className="font-bold">Lote:</span> {getLot('covid')}</p>
+                                <p><span className="font-bold">Método:</span> IMUNOCROMATOGRAFIA</p>
+                                <div className="flex gap-4"><span className="font-bold">Amostra:</span><span>({data.sampleType?.toUpperCase() === 'NASOFARINGEO' ? 'X' : ' '}) SWAB NASOFARÍNGEO</span><span>({data.sampleType?.toUpperCase() === 'NASAL' ? 'X' : ' '}) SWAB NASAL</span></div>
+                            </div>
+                            <div className="mb-6">
+                                <h2 className="font-bold text-lg underline mb-2">RESULTADO DO TESTE</h2>
+                                <div className="space-y-2 ml-4">
+                                    <div className="flex items-center gap-2"><span className="font-bold">({data.result?.toUpperCase() === 'POSITIVO' ? 'X' : ' '})</span> POSITIVO</div>
+                                    <div className="flex items-center gap-2"><span className="font-bold">({data.result?.toUpperCase() === 'NEGATIVO' ? 'X' : ' '})</span> NEGATIVO</div>
+                                </div>
+                            </div>
+                            <div className="border border-black p-4 text-xs space-y-2 mb-6">
+                                <p className="font-bold underline">Observações:</p>
+                                <ol className="list-decimal pl-4 space-y-1">
+                                    <li>O teste rápido é utilizado como auxílio diagnóstico para a COVID-19.</li>
+                                    <li>Mediante avaliação clínica e epidemiológica, testes de antígeno positivos podem ser considerados confirmatórios.</li>
+                                    <li>Um resultado negativo não exclui infecção, RT-PCR é recomendado para sintomáticos persistentes.</li>
+                                </ol>
+                            </div>
+                            <SignatureBlock /><Footer />
+                        </React.Fragment>
+                    )}
+
+                    {type === 'hcg' && (
+                        <React.Fragment>
+                            <Header />
+                            <div className="space-y-4 mb-8 mt-8 text-sm">
+                                <div className="border-b border-black pb-1 flex"><span className="font-bold w-40">Nome do usuário:</span> {data.patientName}</div>
+                                <div className="flex gap-4 border-b border-black pb-1"><span className="flex-1"><span className="font-bold">Prontuário:</span> {data.recordId || '-----'}</span><span className="flex-1"><span className="font-bold">Identidade:</span> {data.document}</span></div>
+                                <div className="flex gap-4 border-b border-black pb-1"><span className="flex-1"><span className="font-bold">Data de Nascimento:</span> {data.dob}</span><span className="flex-1"><span className="font-bold">Sexo:</span> FEMININO</span></div>
+                                <div className="border-b border-black pb-1 flex"><span className="font-bold w-48">Unidade de realização:</span> {data.unit}</div>
+                                <div className="border-b border-black pb-1 flex"><span className="font-bold w-48">Data da coleta:</span> {data.collectionDate}</div>
+                            </div>
+                            <h1 className="text-center font-bold text-xl my-8">TESTE RÁPIDO PARA DETECÇÃO DE HCG</h1>
+                            <div className="border border-black p-2 mb-6">
+                                <p className="font-bold mb-2">Amostra: URINA</p>
+                                <div className="flex border-t border-black pt-2 gap-4"><span className="flex-1"><span className="font-bold">Teste:</span> {data.brand || 'DETECT HCG'}</span><span className="flex-1"><span className="font-bold">Lote:</span> {getLot('hcg')}</span><span className="flex-1"><span className="font-bold">Validade:</span> {getValidity('hcg')}</span></div>
+                                <div className="border-t border-black mt-2 pt-2"><p><span className="font-bold">Método:</span> IMUNOCROMATOGRAFIA</p></div>
+                                <div className="border-t-2 border-black mt-2 pt-4 pb-2 text-center text-xl"><span className="font-bold">RESULTADO DO TESTE:</span> <span className="uppercase">{data.result}</span></div>
+                            </div>
+                            <div className="text-xs text-justify space-y-2 mb-8">
+                                <p className="font-bold">Valor de referência: NEGATIVO: &lt; 25mUI/mL - POSITIVO: &gt; 25mUI/mL</p>
+                                <p>A produção do HCG se inicia nos primeiros dias após a concepção. O valor negativo associado ao atraso menstrual de poucos dias não exclui gestação. Nestes casos, a critério clínico, sugerimos refazer o exame após sete dias.</p>
+                            </div>
+                            <SignatureBlock /><Footer />
+                        </React.Fragment>
+                    )}
+                </div>
+            );
+        };
+
+        // --- APLICAÇÃO PRINCIPAL ---
+        const App = () => {
+            const [isAuthenticated, setIsAuthenticated] = useState(false);
+            const [view, setView] = useState('dashboard');
+            
+            const [inventory, setInventory] = useState([]);
+            const [reports, setReports] = useState([]);
+            const [indicators, setIndicators] = useState([]);
+            
+            const [selectedReportType, setSelectedReportType] = useState(null);
+            const [printData, setPrintData] = useState(null);
+            const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+            const [dbStatus, setDbStatus] = useState('conectando...');
+            
+            const [showInventoryModal, setShowInventoryModal] = useState(false);
+            const [editingItem, setEditingItem] = useState(null);
+            const [editingIndicator, setEditingIndicator] = useState(null);
+
+            const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
+            const [showAdminLogin, setShowAdminLogin] = useState(false);
+            const [adminPasswordInput, setAdminPasswordInput] = useState('');
+            const [pendingView, setPendingView] = useState(null);
+
+            // Fetch Realtime Supabase
+            useEffect(() => {
+                setDbStatus('conectado');
+
+                const fetchData = async () => {
+                    const { data: inv } = await supabaseClient.from('inventory').select('*').order('name');
+                    if (inv) setInventory(inv);
+
+                    const { data: rep } = await supabaseClient.from('reports').select('*').order('created_at', { ascending: false });
+                    if (rep) setReports(rep);
+
+                    const { data: ind } = await supabaseClient.from('indicators').select('*').order('created_at', { ascending: false });
+                    if (ind) setIndicators(ind);
+                };
+
+                fetchData();
+
+                const channels = supabaseClient.channel('custom-all-channel')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, () => {
+                        supabaseClient.from('inventory').select('*').order('name').then(({data}) => { if (data) setInventory(data); });
+                    })
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, () => {
+                        supabaseClient.from('reports').select('*').order('created_at', { ascending: false }).then(({data}) => { if (data) setReports(data); });
+                    })
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'indicators' }, () => {
+                        supabaseClient.from('indicators').select('*').order('created_at', { ascending: false }).then(({data}) => { if (data) setIndicators(data); });
+                    })
+                    .subscribe();
+
+                return () => {
+                    supabaseClient.removeChannel(channels);
+                };
+            }, []);
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                setIsAuthenticated(true);
+            };
+
+            const handleProtectedNavigation = (targetView) => {
+                if (isAdminUnlocked) {
+                    setView(targetView);
+                } else {
+                    setPendingView(targetView);
+                    setShowAdminLogin(true);
+                }
+            };
+
+            const handleAdminUnlock = (e) => {
+                e.preventDefault();
+                if (adminPasswordInput === '852456') {
+                    setIsAdminUnlocked(true);
+                    setShowAdminLogin(false);
+                    setAdminPasswordInput('');
+                    if (pendingView) {
+                        setView(pendingView);
+                        setPendingView(null);
+                    }
+                } else {
+                    alert('Acesso Negado: Senha Administrativa Incorreta.');
+                }
+            };
+
+            const convertToUppercase = (rawData) => {
+                const data = {};
+                for (const key in rawData) {
+                    if (typeof rawData[key] === 'string') {
+                        data[key] = rawData[key].toUpperCase();
+                    } else {
+                        data[key] = rawData[key];
+                    }
+                }
+                return data;
+            };
+
+            const handleSaveInventoryItem = async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                let data = convertToUppercase(Object.fromEntries(formData.entries()));
+                data.quantity = parseInt(data.quantity);
+                data.min = parseInt(data.min);
+
+                try {
+                    if (editingItem) {
+                        const { error } = await supabaseClient.from('inventory').update(data).eq('id', editingItem.id);
+                        if (error) throw error;
+                    } else {
+                        const { error } = await supabaseClient.from('inventory').insert([data]);
+                        if (error) throw error;
+                    }
+                    setShowInventoryModal(false);
+                    setEditingItem(null);
+                } catch (err) { alert("Erro ao salvar: " + err.message); }
+            };
+
+            const handleDeleteInventoryItem = async (id) => {
+                if (window.confirm("Tem certeza que deseja excluir este item?")) {
+                    const { error } = await supabaseClient.from('inventory').delete().eq('id', id);
+                    if (error) alert("Erro ao deletar: " + error.message);
+                }
+            };
+
+            const handleReportSubmit = async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const data = convertToUppercase(Object.fromEntries(formData.entries()));
+                
+                const fullData = {
+                    ...data,
+                    date: new Date().toLocaleDateString('pt-BR'),
+                    type: selectedReportType,
+                    technician: data.professionalName || 'ADMINISTRADOR (TÉCNICO RESP.)'
+                };
+
+                try {
+                    const { error: reportError } = await supabaseClient.from('reports').insert([fullData]);
+                    if (reportError) throw reportError;
+
+                    const relevantItem = inventory.find(i => i.type?.toUpperCase() === selectedReportType.toUpperCase() && i.quantity > 0);
+                    if (relevantItem) {
+                        await supabaseClient.from('inventory').update({ quantity: relevantItem.quantity - 1 }).eq('id', relevantItem.id);
+                    }
+
+                    setPrintData(fullData);
+                } catch (err) { alert("Erro ao gerar laudo: " + err.message); }
+            };
+
+            const handleSaveIndicator = async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const data = convertToUppercase(Object.fromEntries(formData.entries()));
+
+                try {
+                    if (editingIndicator) {
+                        const { error } = await supabaseClient.from('indicators').update(data).eq('id', editingIndicator.id);
+                        if (error) throw error;
+                        setEditingIndicator(null);
+                    } else {
+                        const { error } = await supabaseClient.from('indicators').insert([data]);
+                        if (error) throw error;
+                    }
+                    e.target.reset();
+                } catch (err) { alert("Erro ao salvar indicador: " + err.message); }
+            };
+
+            const handleDeleteIndicator = async (id) => {
+                if (window.confirm("Deseja remover este registro de indicador?")) {
+                    try {
+                        const { error } = await supabaseClient.from('indicators').delete().eq('id', id);
+                        if (error) throw error;
+                    } catch (error) { alert("Erro ao excluir registro."); }
+                }
+            };
+
+            const exportIndicatorsCSV = () => {
+                if (indicators.length === 0) return alert("Nenhum dado para exportar.");
+                const headers = ["DATA", "G'MUS", "PRESSÃO", "HGT", "PESO", "ALTURA", "PROFISSIONAL"];
+                const rows = indicators.map(item => [item.date, item.gmus, item.pressure, item.hgt, item.weight, item.height, item.professional]);
+                let csvContent = "data:text/csv;charset=utf-8," + headers.join(";") + "\n" + rows.map(e => e.join(";")).join("\n");
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "indicadores_neon.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            const exportData = () => {
+                const data = { inventory, reports, indicators };
+                const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
+                const link = document.createElement("a");
+                link.href = jsonString;
+                link.download = "backup_dados_neon.json";
+                link.click();
+            };
+
+            const getStockStatus = (item) => {
+                if (item.quantity === 0) return { color: 'text-red-500', icon: 'circle-xmark', text: 'Esgotado' };
+                if (item.quantity <= item.min) return { color: 'text-yellow-400', icon: 'triangle-exclamation', text: 'Crítico' };
+                return { color: `text-[${NEON_GREEN}]`, icon: 'circle-check', text: 'Normal' };
+            };
+
+            const downloadPdf = () => {
+                if (!window.html2pdf) return alert("Aguarde o carregamento do gerador de PDF.");
+                setIsGeneratingPdf(true);
+                const element = document.getElementById('report-content');
+                const opt = {
+                    margin: [0, 0, 0, 0],
+                    filename: `laudo_${printData.patientName}_${printData.type}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true, scrollY: 0, scrollX: 0, windowWidth: 794, width: 794, x: 0, y: 0 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                window.html2pdf().set(opt).from(element).save().then(() => setIsGeneratingPdf(false));
+            };
+
+            const availableKit = selectedReportType 
+                ? inventory.find(i => i.type?.toUpperCase() === selectedReportType.toUpperCase() && i.quantity > 0) 
+                : null;
+
+            // --- TELA DE LOGIN ---
+            if (!isAuthenticated) {
+                return (
+                    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center relative overflow-hidden font-mono text-white">
+                        <Snowfall />
+                        <div className={`relative z-10 w-96 ${styles.glassCard} text-center`}>
+                            <div className="mb-6 flex justify-center animate-pulse">
+                                <Icon name="heart-pulse" size={64} color={NEON_GREEN} />
+                            </div>
+                            <h1 className={`text-3xl font-bold mb-2 ${styles.neonText} uppercase`}>Laboratório Neon</h1>
+                            <p className="text-white/60 mb-2 text-sm">Acesso ao Sistema</p>
+                            <div className="flex justify-center items-center gap-2 mb-8 text-xs text-gray-500">
+                                <Icon name="cloud" size={12} color={dbStatus === 'conectado' ? '#22c55e' : '#ef4444'} />
+                                Supabase: {dbStatus}
+                            </div>
+                            <div className="space-y-4">
+                                <button onClick={handleLogin} className={`w-full py-3 rounded ${styles.neonButton}`}>ENTRAR NO SISTEMA</button>
+                            </div>
+                            <div className="mt-4 text-xs text-white/40">SISTEMA ÚNICO HTML | SUPABASE</div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // --- TELA DE VISUALIZAÇÃO DO LAUDO ---
+            if (printData) {
+                return (
+                    <div className="min-h-screen bg-gray-900 flex flex-col items-center pt-8 pb-20 relative z-50 overflow-y-auto">
+                        <div className={`fixed top-0 left-0 right-0 bg-black/90 p-4 flex justify-between items-center shadow-lg border-b border-[${NEON_GREEN}]/30 z-[100] no-print`}>
+                            <div className="flex items-center gap-4">
+                                <button onClick={() => { setPrintData(null); setView('dashboard'); setSelectedReportType(null); }} className={`text-white hover:text-[${NEON_GREEN}] flex items-center gap-2`}>
+                                    <Icon name="arrow-left" size={16} /> Voltar
+                                </button>
+                                <span className="text-white font-bold">Visualização do Laudo</span>
+                            </div>
+                            <div className="flex gap-4">
+                                <button onClick={() => window.print()} className="bg-white text-black px-6 py-2 rounded font-bold hover:bg-gray-200 flex items-center gap-2"><Icon name="print"/> Imprimir</button>
+                                <button onClick={downloadPdf} disabled={isGeneratingPdf} className={`bg-[${NEON_GREEN}] text-black px-6 py-2 rounded font-bold hover:bg-[#32cc12] flex items-center gap-2 disabled:opacity-50`}>
+                                    {isGeneratingPdf ? 'Gerando...' : <React.Fragment><Icon name="download"/> Baixar PDF</React.Fragment>}
+                                </button>
+                            </div>
+                        </div>
+                        <div className="mt-16 print:mt-0 print:absolute print:top-0 print:left-0 print:w-full flex justify-center w-full">
+                            <div className="shadow-2xl">
+                                <PrintLayout data={printData} type={printData.type} id="report-content" inventory={inventory} />
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // --- DASHBOARD PRINCIPAL ---
+            return (
+                <div className="min-h-screen bg-[#0a0a0a] text-white font-mono relative overflow-hidden flex">
+                    <Snowfall />
+
+                    {showAdminLogin && (
+                        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-in fade-in zoom-in duration-200">
+                            <div className={`${styles.glassCard} w-96 text-center relative border border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.2)]`}>
+                                <button onClick={() => setShowAdminLogin(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white"><Icon name="xmark" size={20}/></button>
+                                <div className="flex justify-center mb-4"><Icon name="lock" size={48} color="#eab308" /></div>
+                                <h2 className="text-xl font-bold text-white mb-2 uppercase tracking-widest">Acesso Restrito</h2>
+                                <p className="text-gray-400 text-sm mb-6">Esta área requer autenticação administrativa superior.</p>
+                                <form onSubmit={handleAdminUnlock} className="space-y-4">
+                                    <input type="password" className={`${styles.input} text-center tracking-[0.5em] text-lg border-yellow-500/30 focus:border-yellow-500`} autoFocus value={adminPasswordInput} onChange={(e) => setAdminPasswordInput(e.target.value)} placeholder="••••••" />
+                                    <button type="submit" className="w-full py-3 bg-yellow-500/10 border border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black transition-all font-bold uppercase tracking-wider">Desbloquear</button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    <aside className={`w-64 ${styles.glassCard} m-4 mr-0 flex flex-col z-10 h-[95vh]`}>
+                        <div className="flex items-center gap-2 mb-8 border-b border-white/10 pb-4">
+                            <Icon name="heart-pulse" size={24} color={NEON_GREEN} />
+                            <span className={`font-bold text-lg ${styles.neonText}`}>LAB SYSTEM</span>
+                        </div>
+                        <nav className="flex-1 space-y-2">
+                            <button onClick={() => setView('dashboard')} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'dashboard' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="heart-pulse" size={18} color={view === 'dashboard' ? NEON_GREEN : 'gray'} /> Dashboard</button>
+                            <button onClick={() => setView('new_report')} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'new_report' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="file-lines" size={18} color={view === 'new_report' ? NEON_GREEN : 'gray'} /> Novo Laudo</button>
+                            <button onClick={() => setView('indicators')} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'indicators' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="clipboard-list" size={18} color={view === 'indicators' ? NEON_GREEN : 'gray'} /> Indicadores</button>
+                            
+                            <div className="py-2 border-t border-b border-white/5 my-2">
+                                <p className="px-3 text-xs text-gray-500 uppercase font-bold mb-2 flex items-center gap-1"><Icon name="lock" size={10}/> Área Restrita</p>
+                                <button onClick={() => handleProtectedNavigation('inventory')} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'inventory' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="box" size={18} color={view === 'inventory' ? NEON_GREEN : 'gray'} /> Estoque</button>
+                                <button onClick={() => handleProtectedNavigation('database')} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'database' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="database" size={18} color={view === 'database' ? NEON_GREEN : 'gray'} /> Banco de Dados</button>
+                            </div>
+                        </nav>
+                        <div className="mt-auto pt-4 border-t border-white/10">
+                            <button onClick={() => setIsAuthenticated(false)} className="flex items-center gap-2 text-red-400 hover:text-red-300 w-full p-2"><Icon name="right-from-bracket" size={18} /> Sair</button>
+                        </div>
+                    </aside>
+
+                    <main className="flex-1 p-8 z-10 overflow-y-auto h-screen relative">
+                        <header className="flex justify-between items-center mb-8">
+                            <h2 className={`text-3xl font-bold uppercase tracking-widest ${styles.neonText}`}>
+                                {view === 'dashboard' && 'Visão Geral'}
+                                {view === 'new_report' && 'Emitir Laudo'}
+                                {view === 'indicators' && 'Indicadores de Saúde'}
+                                {view === 'inventory' && 'Controle de Estoque'}
+                                {view === 'database' && 'Administração de Dados'}
+                            </h2>
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm text-gray-400">Status DB:</span>
+                                <div className={`px-3 py-1 rounded-full border border-[${NEON_GREEN}] flex items-center justify-center bg-black text-xs font-bold text-[${NEON_GREEN}]`}>
+                                   {dbStatus.toUpperCase()}
+                                </div>
+                            </div>
+                        </header>
+
+                        {view === 'dashboard' && (
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className={styles.glassCard}>
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="p-3 bg-green-900/30 rounded-lg"><Icon name="file-lines" color={NEON_GREEN} size={20}/></div>
+                                            <span className="text-green-400 text-xs font-bold">Total</span>
+                                        </div>
+                                        <h3 className="text-gray-400 text-sm">Laudos Emitidos</h3>
+                                        <p className="text-4xl font-bold text-white mt-1">{reports.length}</p>
+                                    </div>
+                                    <div className={styles.glassCard}>
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="p-3 bg-blue-900/30 rounded-lg"><Icon name="box" color="#3b82f6" size={20}/></div>
+                                            <span className="text-blue-400 text-xs font-bold">Total</span>
+                                        </div>
+                                        <h3 className="text-gray-400 text-sm">Total em Estoque</h3>
+                                        <p className="text-4xl font-bold text-white mt-1">{inventory.reduce((acc, item) => acc + item.quantity, 0)}</p>
+                                    </div>
+                                    <div className={styles.glassCard}>
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="p-3 bg-red-900/30 rounded-lg"><Icon name="triangle-exclamation" color="#ef4444" size={20}/></div>
+                                            <span className="text-red-400 text-xs font-bold">Atenção</span>
+                                        </div>
+                                        <h3 className="text-gray-400 text-sm">Estoque Crítico</h3>
+                                        <p className="text-4xl font-bold text-white mt-1">{inventory.filter(i => i.quantity <= i.min).length}</p>
+                                    </div>
+                                </div>
+                                <div className={styles.glassCard}>
+                                    <h3 className="text-xl font-bold mb-4 text-white border-b border-gray-700 pb-2">Histórico Recente (Supabase)</h3>
+                                    <div className="space-y-4">
+                                        {reports.length === 0 ? (
+                                            <p className="text-gray-500 text-center py-8">Nenhum laudo encontrado no banco de dados.</p>
+                                        ) : (
+                                            reports.slice(0, 5).map((report) => (
+                                                <div key={report.id} className={`flex justify-between items-center p-3 bg-white/5 rounded hover:bg-white/10 transition-colors border-l-2 border-transparent hover:border-[${NEON_GREEN}]`}>
+                                                    <div>
+                                                        <p className="font-bold text-white">{report.patientName}</p>
+                                                        <p className="text-xs text-gray-400">Exame: {report.type?.toUpperCase()} | {report.date}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-4">
+                                                        <span className={`px-2 py-1 rounded text-xs font-bold ${report.result?.toUpperCase().includes('POSITIVO') ? 'bg-red-900/50 text-red-400' : 'bg-green-900/50 text-green-400'}`}>{report.result}</span>
+                                                        <button onClick={() => setPrintData(report)} className="p-2 hover:text-white text-gray-400"><Icon name="print" size={18}/></button>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {view === 'indicators' && (
+                            <div className="space-y-6">
+                                <div className={styles.glassCard}>
+                                    <h3 className={`text-xl font-bold text-[${NEON_GREEN}] mb-6 flex items-center gap-2`}><Icon name="plus" size={18}/> {editingIndicator ? 'Editar Indicador' : 'Registrar Novo Indicador'}</h3>
+                                    <form onSubmit={handleSaveIndicator} className="space-y-6" key={editingIndicator ? editingIndicator.id : 'new'}>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            <div><label className="text-xs text-gray-400 uppercase">Data</label><input name="date" defaultValue={editingIndicator ? editingIndicator.date : new Date().toLocaleDateString('pt-BR')} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">G'MUS *</label><input name="gmus" required defaultValue={editingIndicator?.gmus} className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">PRESSÃO</label><input name="pressure" defaultValue={editingIndicator?.pressure} className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">HGT</label><input name="hgt" defaultValue={editingIndicator?.hgt} className={styles.input} /></div>
+                                        </div>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                            <div><label className="text-xs text-gray-400 uppercase">PESO</label><input name="weight" defaultValue={editingIndicator?.weight} className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">ALTURA</label><input name="height" defaultValue={editingIndicator?.height} className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">PROFISSIONAL *</label><input name="professional" required defaultValue={editingIndicator?.professional} className={styles.input} /></div>
+                                        </div>
+                                        <div className="flex gap-4 pt-2">
+                                            {editingIndicator && (<button type="button" onClick={() => setEditingIndicator(null)} className="flex-1 py-4 border border-gray-600 text-gray-400 hover:bg-gray-800 rounded flex justify-center items-center gap-2"><Icon name="xmark" size={18}/> Cancelar</button>)}
+                                            <button type="submit" className={`flex-1 py-4 ${styles.neonButton} flex justify-center items-center gap-2`}><Icon name="floppy-disk" size={18}/> {editingIndicator ? 'Atualizar' : 'Salvar'}</button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div className={styles.glassCard}>
+                                    <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+                                        <h3 className="text-lg font-bold text-white">Registros Salvos</h3>
+                                        <button onClick={exportIndicatorsCSV} className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded flex items-center gap-2 text-sm"><Icon name="download" size={14}/> CSV</button>
+                                    </div>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse text-sm">
+                                            <thead className="text-gray-400 uppercase border-b border-gray-800">
+                                                <tr><th className="py-3 px-2">Data</th><th className="py-3 px-2">G'MUS</th><th className="py-3 px-2">Pressão</th><th className="py-3 px-2">HGT</th><th className="py-3 px-2">Peso</th><th className="py-3 px-2">Altura</th><th className="py-3 px-2">Profissional</th><th className="py-3 px-2 text-right">Ação</th></tr>
+                                            </thead>
+                                            <tbody className="text-white">
+                                                {indicators.length === 0 ? (<tr><td colSpan="8" className="py-8 text-center text-gray-500">Nenhum indicador registrado.</td></tr>) : (
+                                                    indicators.map((item) => (
+                                                        <tr key={item.id} className="border-b border-gray-800 hover:bg-white/5">
+                                                            <td className="py-3 px-2">{item.date}</td><td className="py-3 px-2">{item.gmus}</td><td className="py-3 px-2">{item.pressure}</td><td className="py-3 px-2">{item.hgt}</td><td className="py-3 px-2">{item.weight}</td><td className="py-3 px-2">{item.height}</td><td className="py-3 px-2">{item.professional}</td>
+                                                            <td className="py-3 px-2 text-right flex justify-end gap-3">
+                                                                <button onClick={() => setEditingIndicator(item)} className="text-blue-400 hover:text-white" title="Editar"><Icon name="pen-to-square" size={16}/></button>
+                                                                <button onClick={() => handleDeleteIndicator(item.id)} className="text-red-500 hover:text-white" title="Excluir"><Icon name="trash-can" size={16}/></button>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {view === 'inventory' && (
+                            <div className={styles.glassCard}>
+                                <div className="flex justify-between mb-6">
+                                    <div className="relative w-64">
+                                        <Icon name="magnifying-glass" size={18} className="absolute left-3 top-3 text-gray-500" />
+                                        <input type="text" placeholder="Buscar item..." className={`${styles.input} pl-10`} />
+                                    </div>
+                                    <button onClick={() => handleOpenInventoryModal()} className={`px-4 py-2 ${styles.neonButton} flex items-center gap-2 text-sm`}><Icon name="plus" size={16} /> Adicionar Item</button>
+                                </div>
+                                <table className="w-full text-left border-collapse">
+                                    <thead><tr className="text-gray-400 border-b border-gray-700 text-sm uppercase"><th className="py-3">Item</th><th className="py-3">Lote</th><th className="py-3">Validade</th><th className="py-3">Qtd</th><th className="py-3">Status</th><th className="py-3 text-right pr-4">Ações</th></tr></thead>
+                                    <tbody>
+                                        {inventory.length === 0 ? (<tr><td colSpan="6" className="py-8 text-center text-gray-500">Nenhum item no estoque. Adicione um novo item.</td></tr>) : (
+                                            inventory.map((item) => {
+                                                const status = getStockStatus(item);
+                                                return (
+                                                    <tr key={item.id} className="border-b border-gray-800 hover:bg-white/5 transition-colors">
+                                                        <td className="py-4 font-bold max-w-[200px]">{item.name}</td>
+                                                        <td className="py-4 text-sm text-gray-400">{item.lot || '-'}</td>
+                                                        <td className="py-4 text-sm text-gray-400">{item.validity ? new Date(item.validity).toLocaleDateString('pt-BR') : '-'}</td>
+                                                        <td className="py-4 font-mono text-lg">{item.quantity}</td>
+                                                        <td className={`py-4 flex items-center gap-2 ${status.color}`}><Icon name={status.icon} size={16}/> {status.text}</td>
+                                                        <td className="py-4 text-right">
+                                                            <div className="flex justify-end gap-3">
+                                                                <button onClick={() => handleOpenInventoryModal(item)} className="text-blue-400 hover:text-white" title="Editar"><Icon name="pen-to-square" size={18}/></button>
+                                                                <button onClick={() => handleDeleteInventoryItem(item.id)} className="text-red-500 hover:text-white" title="Excluir"><Icon name="trash-can" size={18}/></button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        )}
+                                    </tbody>
+                                </table>
+
+                                {showInventoryModal && (
+                                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                                        <div className={`${styles.glassCard} w-full max-w-lg relative animate-in fade-in zoom-in duration-300`}>
+                                            <button onClick={() => setShowInventoryModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white"><Icon name="xmark" size={20}/></button>
+                                            <h2 className="text-2xl font-bold mb-6 text-white border-b border-gray-700 pb-2">{editingItem ? 'Editar Item' : 'Novo Item de Estoque'}</h2>
+                                            <form onSubmit={handleSaveInventoryItem} className="space-y-4">
+                                                <div><label className="text-xs text-gray-400 uppercase">Nome do Kit / Material</label><input required name="name" defaultValue={editingItem?.name} className={styles.input} placeholder="Ex: Kit Dengue NS1" /></div>
+                                                <div>
+                                                    <label className="text-xs text-gray-400 uppercase">Tipo (Categoria)</label>
+                                                    <select name="type" defaultValue={editingItem?.type?.toLowerCase() || 'dengue'} className={styles.input}>
+                                                        <option value="dengue">DENGUE</option><option value="covid">COVID-19</option><option value="hcg">HCG (GRAVIDEZ)</option><option value="outro">OUTRO / GERAL</option>
+                                                    </select>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div><label className="text-xs text-gray-400 uppercase flex items-center gap-1"><Icon name="hashtag" size={12}/> Lote</label><input required name="lot" defaultValue={editingItem?.lot} className={styles.input} placeholder="Ex: A2023" /></div>
+                                                    <div><label className="text-xs text-gray-400 uppercase flex items-center gap-1"><Icon name="calendar" size={12}/> Validade</label><input required name="validity" type="date" defaultValue={editingItem?.validity} className={styles.input} /></div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div><label className="text-xs text-gray-400 uppercase">Quantidade Atual</label><input required name="quantity" type="number" min="0" defaultValue={editingItem?.quantity || 0} className={styles.input} /></div>
+                                                    <div><label className="text-xs text-gray-400 uppercase">Estoque Mínimo (Alerta)</label><input required name="min" type="number" min="0" defaultValue={editingItem?.min || 10} className={styles.input} /></div>
+                                                </div>
+                                                <div className="pt-4 flex gap-4">
+                                                    <button type="button" onClick={() => setShowInventoryModal(false)} className="flex-1 py-3 border border-gray-600 text-gray-400 hover:bg-gray-800 rounded">Cancelar</button>
+                                                    <button type="submit" className={`flex-1 py-3 ${styles.neonButton} flex justify-center items-center gap-2`}><Icon name="floppy-disk" size={18}/> Salvar</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {view === 'database' && (
+                            <div className={styles.glassCard}>
+                                <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-white">Banco de Dados (Supabase)</h2>
+                                        <p className="text-gray-400 text-sm mt-1">Registros brutos e auditoria de IDs</p>
+                                    </div>
+                                    <button onClick={exportData} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded flex items-center gap-2"><Icon name="download" size={16}/> Exportar JSON</button>
+                                </div>
+                                <div className="space-y-8">
+                                    <div>
+                                        <h3 className={`text-[${NEON_GREEN}] font-bold uppercase mb-4 flex items-center gap-2`}><Icon name="file-lines" size={16}/> Tabela de Laudos ({reports.length})</h3>
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left text-xs text-gray-300">
+                                                <thead className="bg-white/5 uppercase text-gray-500"><tr><th className="p-2">ID (Doc)</th><th className="p-2">Data</th><th className="p-2">Paciente</th><th className="p-2">Tipo</th><th className="p-2">Resultado</th></tr></thead>
+                                                <tbody className="divide-y divide-white/5">
+                                                    {reports.map(r => (<tr key={r.id} className="hover:bg-white/5"><td className="p-2 font-mono text-white/50">{r.id}</td><td className="p-2">{r.date}</td><td className="p-2 font-bold text-white">{r.patientName}</td><td className="p-2 uppercase">{r.type}</td><td className="p-2">{r.result}</td></tr>))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 className={`text-[${NEON_GREEN}] font-bold uppercase mb-4 flex items-center gap-2`}><Icon name="box" size={16}/> Tabela de Inventário ({inventory.length})</h3>
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left text-xs text-gray-300">
+                                                <thead className="bg-white/5 uppercase text-gray-500"><tr><th className="p-2">ID (Doc)</th><th className="p-2">Item</th><th className="p-2">Lote</th><th className="p-2">Qtd</th></tr></thead>
+                                                <tbody className="divide-y divide-white/5">
+                                                    {inventory.map(i => (<tr key={i.id} className="hover:bg-white/5"><td className="p-2 font-mono text-white/50">{i.id}</td><td className="p-2 font-bold text-white">{i.name}</td><td className="p-2">{i.lot}</td><td className="p-2">{i.quantity}</td></tr>))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {view === 'new_report' && !selectedReportType && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {[
+                                    { id: 'dengue', title: 'Dengue NS1', icon: 'syringe', desc: 'Teste rápido imunocromatográfico' },
+                                    { id: 'covid', title: 'Covid-19', icon: 'temperature-half', desc: 'Antígeno (Swab Nasal/Nasofaringeo)' },
+                                    { id: 'hcg', title: 'HCG (Gravidez)', icon: 'baby', desc: 'Detecção na urina' }
+                                ].map((type) => (
+                                    <button key={type.id} onClick={() => setSelectedReportType(type.id)} className={`${styles.glassCard} hover:scale-105 transition-transform text-center flex flex-col items-center justify-center gap-4 py-12 group`}>
+                                        <div className={`p-4 rounded-full border border-gray-600 group-hover:border-[${NEON_GREEN}] group-hover:shadow-[0_0_15px_${NEON_GREEN}] transition-all`}>
+                                            <Icon name={type.icon} size={40} className={`text-white group-hover:text-[${NEON_GREEN}]`} />
+                                        </div>
+                                        <h3 className="text-xl font-bold">{type.title}</h3>
+                                        <p className="text-sm text-gray-400">{type.desc}</p>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {view === 'new_report' && selectedReportType === 'dengue' && (
+                            <div className={styles.glassCard}>
+                                <div className="flex items-center gap-2 mb-6 border-b border-gray-700 pb-4">
+                                    <button onClick={() => setSelectedReportType(null)} className="text-gray-400 hover:text-white"><Icon name="arrow-left" size={16}/> Voltar</button>
+                                    <h3 className={`text-xl font-bold text-[${NEON_GREEN}] ml-4`}>Novo Laudo: DENGUE NS1</h3>
+                                </div>
+                                <form onSubmit={handleReportSubmit} className="space-y-6">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div><label className="text-xs text-gray-400">Nome do Paciente</label><input required name="patientName" className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400">Identidade/CPF</label><input required name="document" className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400">Data de Nascimento</label><input required name="dob" type="date" className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400">Sexo</label><select name="sex" className={styles.input}><option>MASCULINO</option><option>FEMININO</option></select></div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div><label className="text-xs text-gray-400">Unidade de Realização</label><input name="unit" defaultValue="UBS CANUDOS" className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400">Início dos Sintomas</label><input required name="symptomsDate" type="date" className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400">Data da Coleta</label><input required name="collectionDate" type="date" defaultValue={new Date().toISOString().split('T')[0]} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400">Nome do Profissional</label><input required name="professionalName" className={styles.input} /></div>
+                                    </div>
+                                    <div className="border border-gray-700 p-4 rounded">
+                                        <h4 className="text-sm font-bold text-gray-300 mb-2">Dados do Kit</h4>
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div><label className="text-xs text-gray-400">Lote</label><input required name="lot" defaultValue={availableKit?.lot || ''} className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400">Validade</label><input required name="validity" defaultValue={availableKit?.validity || ''} className={styles.input} /></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className={`block text-sm font-bold mb-2 text-[${NEON_GREEN}]`}>Resultado</label>
+                                        <div className="flex gap-6">
+                                            <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Positivo" className={`accent-[${NEON_GREEN}]`}/> POSITIVO</label>
+                                            <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Negativo" defaultChecked className={`accent-[${NEON_GREEN}]`}/> NEGATIVO</label>
+                                            <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Inconclusivo" className={`accent-[${NEON_GREEN}]`}/> INCONCLUSIVO</label>
+                                        </div>
+                                    </div>
+                                    <button type="submit" className={`w-full py-4 mt-4 ${styles.neonButton}`}>Visualizar Laudo</button>
+                                </form>
+                            </div>
+                        )}
+
+                        {view === 'new_report' && selectedReportType === 'covid' && (
+                            <div className={styles.glassCard}>
+                                <div className="flex items-center gap-2 mb-6 border-b border-gray-700 pb-4">
+                                    <button onClick={() => setSelectedReportType(null)} className="text-gray-400 hover:text-white"><Icon name="arrow-left" size={16}/> Voltar</button>
+                                    <h3 className={`text-xl font-bold text-[${NEON_GREEN}] ml-4`}>Novo Laudo: COVID-19</h3>
+                                </div>
+                                <form onSubmit={handleReportSubmit} className="space-y-6">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="col-span-2"><label className="text-xs text-gray-400">Nome do Paciente</label><input required name="patientName" className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400">Data de Nascimento</label><input required name="dob" type="date" className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400">Sexo</label><select name="sex" className={styles.input}><option>MASCULINO</option><option>FEMININO</option></select></div>
+                                        <div className="col-span-2"><label className="text-xs text-gray-400">Nome do Profissional</label><input required name="professionalName" className={styles.input} /></div>
+                                    </div>
+                                    <div className="border border-gray-700 p-4 rounded">
+                                        <h4 className="text-sm font-bold text-gray-300 mb-2">Dados do Kit</h4>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div><label className="text-xs text-gray-400">Fabricante</label><input name="manufacturer" defaultValue="ABBOTT PANBIO" className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400">Lote</label><input required name="lot" defaultValue={availableKit?.lot || ''} className={styles.input} /></div>
+                                        </div>
+                                        <div className="mt-4">
+                                            <label className="text-xs text-gray-400 mb-1 block">Tipo de Amostra</label>
+                                            <div className="flex gap-4">
+                                                <label className="flex items-center gap-2"><input type="radio" name="sampleType" value="nasofaringeo" defaultChecked className={`accent-[${NEON_GREEN}]`}/> SWAB NASOFARÍNGEO</label>
+                                                <label className="flex items-center gap-2"><input type="radio" name="sampleType" value="nasal" className={`accent-[${NEON_GREEN}]`}/> SWAB NASAL</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className={`block text-sm font-bold mb-2 text-[${NEON_GREEN}]`}>Resultado</label>
+                                        <div className="flex gap-6">
+                                            <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Positivo" className={`accent-[${NEON_GREEN}]`}/> POSITIVO</label>
+                                            <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Negativo" defaultChecked className={`accent-[${NEON_GREEN}]`}/> NEGATIVO</label>
+                                        </div>
+                                    </div>
+                                    <button type="submit" className={`w-full py-4 mt-4 ${styles.neonButton}`}>Visualizar Laudo</button>
+                                </form>
+                            </div>
+                        )}
+
+                        {view === 'new_report' && selectedReportType === 'hcg' && (
+                            <div className={styles.glassCard}>
+                                <div className="flex items-center gap-2 mb-6 border-b border-gray-700 pb-4">
+                                    <button onClick={() => setSelectedReportType(null)} className="text-gray-400 hover:text-white"><Icon name="arrow-left" size={16}/> Voltar</button>
+                                    <h3 className={`text-xl font-bold text-[${NEON_GREEN}] ml-4`}>Novo Laudo: HCG (Gravidez)</h3>
+                                </div>
+                                <form onSubmit={handleReportSubmit} className="space-y-6">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div><label className="text-xs text-gray-400">Nome do Paciente</label><input required name="patientName" className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400">Identidade</label><input required name="document" className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400">Data de Nascimento</label><input required name="dob" type="date" className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400">Prontuário</label><input name="recordId" className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400">Unidade</label><input name="unit" defaultValue="UBS CANUDOS" className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400">Data da Coleta</label><input required name="collectionDate" type="date" defaultValue={new Date().toISOString().split('T')[0]} className={styles.input} /></div>
+                                        <div className="col-span-2"><label className="text-xs text-gray-400">Nome do Profissional</label><input required name="professionalName" className={styles.input} /></div>
+                                    </div>
+                                    <div className="border border-gray-700 p-4 rounded">
+                                        <h4 className="text-sm font-bold text-gray-300 mb-2">Dados do Kit</h4>
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div><label className="text-xs text-gray-400">Marca/Teste</label><input name="brand" defaultValue="DETECT HCG" className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400">Lote</label><input required name="lot" defaultValue={availableKit?.lot || ''} className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400">Validade</label><input required name="validity" defaultValue={availableKit?.validity || ''} className={styles.input} /></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className={`block text-sm font-bold mb-2 text-[${NEON_GREEN}]`}>Resultado</label>
+                                        <div className="flex gap-6">
+                                            <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Positivo" className={`accent-[${NEON_GREEN}]`}/> POSITIVO (&gt; 25mUI/mL)</label>
+                                            <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Negativo" defaultChecked className={`accent-[${NEON_GREEN}]`}/> NEGATIVO (&lt; 25mUI/mL)</label>
+                                        </div>
+                                    </div>
+                                    <button type="submit" className={`w-full py-4 mt-4 ${styles.neonButton}`}>Visualizar Laudo</button>
+                                </form>
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        };
+
+        // Renderiza o App
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
