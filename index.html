@@ -38,7 +38,7 @@
 
     <!-- CÓDIGO DO SISTEMA -->
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo } = React;
 
         // ============================================================================
         // CONFIGURAÇÃO DO SUPABASE
@@ -121,7 +121,7 @@
                 <div className="mt-auto text-center text-xs text-gray-500 border-t border-gray-300 pt-2 pb-4">
                     <p>www.novohamburgo.rs.gov.br</p>
                     <p>Centro Administrativo Leopoldo Petry | Rua Guia Lopes, 4201 - Canudos - 93548-013 | Novo Hamburgo - RS</p>
-                    <p>Este laudo possui caráter meramente informativo. Não substitui o diagnóstico médico.</p>
+                    <p>Este documento possui caráter informativo.</p>
                 </div>
             );
 
@@ -146,6 +146,67 @@
 
             return (
                 <div id={id} className="bg-white text-black p-12 flex flex-col relative uppercase" style={{ width: '210mm', height: '297mm', boxSizing: 'border-box', overflow: 'hidden' }}>
+                    {/* MODELO FICHA DE ATENDIMENTO (F.A) */}
+                    {type === 'fa' && (
+                        <React.Fragment>
+                            <Header />
+                            <div className="border-t-2 border-b-2 border-black py-1 mb-6 mt-4"><h1 className="text-center font-bold text-xl uppercase">FICHA DE ATENDIMENTO AMBULATORIAL</h1></div>
+                            
+                            <div className="border border-black p-4 mb-4 text-sm space-y-2">
+                                <div className="flex justify-between">
+                                    <span className="flex-1"><span className="font-bold">G'MUS:</span> {data.gmus}</span>
+                                    <span className="flex-1"><span className="font-bold">DATA:</span> {data.date}</span>
+                                </div>
+                                <div className="border-t border-gray-300 pt-2"><span className="font-bold">PACIENTE:</span> {data.patientName}</div>
+                                <div className="flex justify-between border-t border-gray-300 pt-2">
+                                    <span className="flex-1"><span className="font-bold">NASCIMENTO:</span> {data.dob ? new Date(data.dob + 'T00:00:00').toLocaleDateString('pt-BR') : ''}</span>
+                                    <span className="flex-1"><span className="font-bold">IDADE:</span> {data.age}</span>
+                                </div>
+                            </div>
+
+                            <div className="border border-black p-4 mb-4 text-sm space-y-2">
+                                <h3 className="font-bold border-b border-black pb-1 mb-2">SINAIS VITAIS E ANTROPOMETRIA</h3>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div><span className="font-bold">PA:</span> {data.pa}</div>
+                                    <div><span className="font-bold">FC:</span> {data.fc}</div>
+                                    <div><span className="font-bold">FR:</span> {data.fr}</div>
+                                    <div><span className="font-bold">TEMP:</span> {data.temp}</div>
+                                    <div><span className="font-bold">SATO2:</span> {data.sato2}</div>
+                                    <div><span className="font-bold">HGT:</span> {data.hgt}</div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 border-t border-gray-300 pt-2 mt-2">
+                                    <div><span className="font-bold">PESO:</span> {data.weight}</div>
+                                    <div><span className="font-bold">ESTATURA:</span> {data.height}</div>
+                                </div>
+                            </div>
+
+                            <div className="border border-black p-4 mb-4 text-sm min-h-[150px]">
+                                <h3 className="font-bold border-b border-black pb-1 mb-2">SINTOMAS / QUEIXA PRINCIPAL</h3>
+                                <p className="whitespace-pre-wrap">{data.symptoms}</p>
+                            </div>
+
+                            <div className="border border-black p-4 mb-6 text-sm min-h-[150px]">
+                                <h3 className="font-bold border-b border-black pb-1 mb-2">DADOS MÉDICOS / EVOLUÇÃO</h3>
+                                <p className="whitespace-pre-wrap">{data.medicalData}</p>
+                            </div>
+
+                            <div className="mt-12 space-y-6">
+                                <div className="flex justify-between">
+                                    <div className="w-1/2 pr-4">
+                                        <p className="font-bold mb-8">Profissional (Preenchimento):</p>
+                                        <div className="border-t border-black pt-1 uppercase">{data.professionalName}</div>
+                                    </div>
+                                    <div className="w-1/2 pl-4">
+                                        <p className="font-bold mb-8">Carimbo/Assinatura Médico:</p>
+                                        <div className="border-t border-black pt-1"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <Footer />
+                        </React.Fragment>
+                    )}
+
+                    {/* MODELO DENGUE */}
                     {type === 'dengue' && (
                         <React.Fragment>
                             <Header />
@@ -177,6 +238,7 @@
                         </React.Fragment>
                     )}
 
+                    {/* MODELO COVID */}
                     {type === 'covid' && (
                         <React.Fragment>
                             <Header />
@@ -214,6 +276,7 @@
                         </React.Fragment>
                     )}
 
+                    {/* MODELO HCG */}
                     {type === 'hcg' && (
                         <React.Fragment>
                             <Header />
@@ -259,12 +322,27 @@
             const [showInventoryModal, setShowInventoryModal] = useState(false);
             const [editingItem, setEditingItem] = useState(null);
             const [editingIndicator, setEditingIndicator] = useState(null);
-            const [editingReport, setEditingReport] = useState(null); // NOVO ESTADO: Controlar laudo em edição
+            const [editingReport, setEditingReport] = useState(null);
 
             const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
             const [showAdminLogin, setShowAdminLogin] = useState(false);
             const [adminPasswordInput, setAdminPasswordInput] = useState('');
             const [pendingView, setPendingView] = useState(null);
+            
+            const [faDob, setFaDob] = useState('');
+
+            // Cálculo Dinâmico da Idade para a Ficha de Atendimento
+            const faAge = useMemo(() => {
+                if (!faDob) return '';
+                const today = new Date();
+                const birthDate = new Date(faDob + 'T00:00:00'); // Evita bug de timezone
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                return age + ' ANOS';
+            }, [faDob]);
 
             // Fetch Realtime Supabase
             useEffect(() => {
@@ -347,15 +425,6 @@
                 return data;
             };
 
-            const handleApiError = (err, context) => {
-                console.error(`Erro (${context}):`, err);
-                if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('Chave API'))) {
-                    alert(`⚠️ ERRO DE CONEXÃO COM O BANCO DE DADOS (${context}) ⚠️\n\nA requisição falhou. Verifique se a Chave API e a URL estão corretas e se você tem permissão.\n\nDetalhes: ` + err.message);
-                } else {
-                    alert(`Ocorreu um erro (${context}): ` + err.message);
-                }
-            };
-
             const handleSaveInventoryItem = async (e) => {
                 e.preventDefault();
                 const formData = new FormData(e.target);
@@ -374,7 +443,7 @@
                     setShowInventoryModal(false);
                     setEditingItem(null);
                 } catch (err) {
-                    handleApiError(err, "Salvar Estoque");
+                    alert("Erro ao salvar: " + err.message);
                 }
             };
 
@@ -384,26 +453,24 @@
                         const { error } = await supabaseClient.from('inventory').delete().eq('id', id);
                         if (error) throw error;
                     } catch (err) {
-                        handleApiError(err, "Excluir Estoque");
+                        alert("Erro ao excluir: " + err.message);
                     }
                 }
             };
 
-            // Função para preparar a tela de edição de laudo
             const handleEditReport = (report) => {
                 setEditingReport(report);
                 setSelectedReportType(report.type.toLowerCase());
                 setView('new_report');
             };
 
-            // Função para excluir laudo
             const handleDeleteReport = async (id) => {
                 if (window.confirm("Atenção: Tem certeza que deseja excluir este laudo permanentemente?")) {
                     try {
                         const { error } = await supabaseClient.from('reports').delete().eq('id', id);
                         if (error) throw error;
                     } catch (err) {
-                        handleApiError(err, "Excluir Laudo");
+                        alert("Erro ao excluir: " + err.message);
                     }
                 }
             };
@@ -415,24 +482,21 @@
                 
                 const fullData = {
                     ...data,
-                    date: editingReport ? editingReport.date : new Date().toLocaleDateString('pt-BR'), // Mantém a data original na edição
+                    date: editingReport ? editingReport.date : new Date().toLocaleDateString('pt-BR'), 
                     type: selectedReportType,
                     technician: data.professionalName || 'ADMINISTRADOR (TÉCNICO RESP.)'
                 };
 
                 try {
                     if (editingReport) {
-                        // Atualiza laudo existente
                         const { error: reportError } = await supabaseClient.from('reports').update(fullData).eq('id', editingReport.id);
                         if (reportError) throw reportError;
                         setEditingReport(null);
                         setPrintData({...editingReport, ...fullData});
                     } else {
-                        // Insere novo laudo
                         const { error: reportError } = await supabaseClient.from('reports').insert([fullData]);
                         if (reportError) throw reportError;
 
-                        // Abate do estoque apenas se for laudo novo
                         const relevantItem = inventory.find(i => i.type?.toUpperCase() === selectedReportType.toUpperCase() && i.quantity > 0);
                         if (relevantItem) {
                             await supabaseClient.from('inventory').update({ quantity: relevantItem.quantity - 1 }).eq('id', relevantItem.id);
@@ -440,8 +504,25 @@
                         setPrintData(fullData);
                     }
                 } catch (err) { 
-                    handleApiError(err, "Salvar Laudo");
+                    alert("Erro ao gerar laudo: " + err.message);
                 }
+            };
+
+            const handleFASubmit = (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const data = convertToUppercase(Object.fromEntries(formData.entries()));
+                
+                const fullData = {
+                    ...data,
+                    type: 'fa',
+                    age: faAge,
+                    date: new Date().toLocaleDateString('pt-BR'),
+                    technician: data.professionalName || 'ADMINISTRADOR'
+                };
+
+                // F.A apenas gera visualização PDF offline, não envia pro Supabase (conforme instrução "quando não houver internet")
+                setPrintData(fullData);
             };
 
             const handleSaveIndicator = async (e) => {
@@ -460,7 +541,7 @@
                     }
                     e.target.reset();
                 } catch (err) { 
-                    handleApiError(err, "Salvar Indicador");
+                    alert("Erro ao salvar indicador: " + err.message);
                 }
             };
 
@@ -470,7 +551,7 @@
                         const { error } = await supabaseClient.from('indicators').delete().eq('id', id);
                         if (error) throw error;
                     } catch (err) { 
-                        handleApiError(err, "Excluir Indicador");
+                        alert("Erro ao excluir: " + err.message);
                     }
                 }
             };
@@ -513,9 +594,13 @@
                 if (!window.html2pdf) return alert("Aguarde o carregamento do gerador de PDF.");
                 setIsGeneratingPdf(true);
                 const element = document.getElementById('report-content');
+                
+                let filenameStr = `laudo_${printData.patientName}_${printData.type}.pdf`;
+                if(printData.type === 'fa') filenameStr = `Ficha_Atendimento_${printData.patientName}.pdf`;
+
                 const opt = {
                     margin: [0, 0, 0, 0],
-                    filename: `laudo_${printData.patientName}_${printData.type}.pdf`,
+                    filename: filenameStr,
                     image: { type: 'jpeg', quality: 0.98 },
                     html2canvas: { scale: 2, useCORS: true, scrollY: 0, scrollX: 0, windowWidth: 794, width: 794, x: 0, y: 0 },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
@@ -560,7 +645,7 @@
                                 <button onClick={() => { setPrintData(null); setView('dashboard'); setSelectedReportType(null); }} className={`text-white hover:text-[${NEON_GREEN}] flex items-center gap-2`}>
                                     <Icon name="arrow-left" size={16} /> Voltar
                                 </button>
-                                <span className="text-white font-bold">Visualização do Laudo</span>
+                                <span className="text-white font-bold">Visualização do Documento</span>
                             </div>
                             <div className="flex gap-4">
                                 <button onClick={() => window.print()} className="bg-white text-black px-6 py-2 rounded font-bold hover:bg-gray-200 flex items-center gap-2"><Icon name="print"/> Imprimir</button>
@@ -603,10 +688,11 @@
                             <Icon name="heart-pulse" size={24} color={NEON_GREEN} />
                             <span className={`font-bold text-lg ${styles.neonText}`}>LAB SYSTEM</span>
                         </div>
-                        <nav className="flex-1 space-y-2">
+                        <nav className="flex-1 space-y-2 overflow-y-auto">
                             <button onClick={() => {setView('dashboard'); setEditingReport(null);}} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'dashboard' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="heart-pulse" size={18} color={view === 'dashboard' ? NEON_GREEN : 'gray'} /> Dashboard</button>
                             <button onClick={() => {setView('new_report'); setEditingReport(null); setSelectedReportType(null);}} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'new_report' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="file-lines" size={18} color={view === 'new_report' ? NEON_GREEN : 'gray'} /> Novo Laudo</button>
                             <button onClick={() => {setView('indicators'); setEditingReport(null);}} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'indicators' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="clipboard-list" size={18} color={view === 'indicators' ? NEON_GREEN : 'gray'} /> Indicadores</button>
+                            <button onClick={() => {setView('fa'); setEditingReport(null);}} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'fa' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="notes-medical" size={18} color={view === 'fa' ? NEON_GREEN : 'gray'} /> F.A (Atendimento)</button>
                             
                             <div className="py-2 border-t border-b border-white/5 my-2">
                                 <p className="px-3 text-xs text-gray-500 uppercase font-bold mb-2 flex items-center gap-1"><Icon name="lock" size={10}/> Área Restrita</p>
@@ -625,6 +711,7 @@
                                 {view === 'dashboard' && 'Visão Geral'}
                                 {view === 'new_report' && (editingReport ? 'Editar Laudo' : 'Emitir Laudo')}
                                 {view === 'indicators' && 'Indicadores de Saúde'}
+                                {view === 'fa' && 'Ficha de Atendimento Ambulatorial'}
                                 {view === 'inventory' && 'Controle de Estoque'}
                                 {view === 'database' && 'Administração de Dados'}
                             </h2>
@@ -739,6 +826,68 @@
                                         </table>
                                     </div>
                                 </div>
+                            </div>
+                        )}
+
+                        {/* VIEW: FICHA DE ATENDIMENTO (F.A) OFFLINE */}
+                        {view === 'fa' && (
+                            <div className={styles.glassCard}>
+                                <div className="flex items-center gap-2 mb-6 border-b border-gray-700 pb-4">
+                                    <Icon name="notes-medical" size={24} color={NEON_GREEN} />
+                                    <h3 className={`text-xl font-bold text-[${NEON_GREEN}]`}>Nova Ficha de Atendimento (F.A)</h3>
+                                </div>
+                                <form onSubmit={handleFASubmit} className="space-y-6">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div><label className="text-xs text-gray-400 uppercase">Data</label><input name="date" defaultValue={new Date().toLocaleDateString('pt-BR')} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">G'MUS</label><input name="gmus" className={styles.input} /></div>
+                                        <div className="col-span-2"><label className="text-xs text-gray-400 uppercase">Nome do Paciente</label><input required name="patientName" className={styles.input} /></div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-xs text-gray-400 uppercase">Data de Nascimento</label>
+                                            <input required name="dob" type="date" value={faDob} onChange={(e) => setFaDob(e.target.value)} className={styles.input} />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs text-gray-400 uppercase">Idade Atual</label>
+                                            <input value={faAge} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} placeholder="Automático" />
+                                        </div>
+                                    </div>
+
+                                    <div className="border border-gray-700 p-4 rounded space-y-4">
+                                        <h4 className="text-sm font-bold text-gray-300">Sinais Vitais e Antropometria (Opcional)</h4>
+                                        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                                            <div><label className="text-xs text-gray-400 uppercase">PA (mmHg)</label><input name="pa" className={styles.input} placeholder="Ex: 120X80" /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">FC (bpm)</label><input name="fc" className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">FR (irpm)</label><input name="fr" className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">Temp (ºC)</label><input name="temp" className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">SatO2 (%)</label><input name="sato2" className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">HGT</label><input name="hgt" className={styles.input} /></div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div><label className="text-xs text-gray-400 uppercase">Peso (kg)</label><input name="weight" className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">Estatura (cm/m)</label><input name="height" className={styles.input} /></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="text-xs text-gray-400 uppercase">Sintomas / Queixa Principal</label>
+                                            <textarea name="symptoms" rows="3" className={styles.input}></textarea>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs text-gray-400 uppercase">Dados Médicos / Evolução</label>
+                                            <textarea name="medicalData" rows="3" className={styles.input}></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-xs text-gray-400 uppercase">Profissional (Preenchimento)</label>
+                                        <input required name="professionalName" className={styles.input} />
+                                    </div>
+
+                                    <button type="submit" className={`w-full py-4 mt-4 ${styles.neonButton}`}><Icon name="file-pdf" size={18} className="mr-2" /> Gerar Ficha para Imprimir</button>
+                                </form>
                             </div>
                         )}
 
