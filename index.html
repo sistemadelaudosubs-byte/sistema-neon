@@ -41,12 +41,14 @@
         const { useState, useEffect, useMemo, useRef } = React;
 
         // ============================================================================
-        // CONFIGURAÇÃO DO SUPABASE
+        // CONFIGURAÇÕES (BANCO DE DADOS E INTELIGÊNCIA ARTIFICIAL)
         // ============================================================================
-        const SUPABASE_URL = 'https://ohzbkwpoqeukbdyhoymf.supabase.co'; 
         
-        // Substitua esta chave pela sua Chave API ANON/PUBLIC correta do Supabase (Começa com eyJ...)
+        const SUPABASE_URL = 'https://ohzbkwpoqeukbdyhoymf.supabase.co'; 
         const SUPABASE_ANON_KEY = 'sb_publishable_v77SIohURbjCbolb3Glrtw_9fiHp6Mv';
+        
+        // Chave do Google Gemini fornecida para a tradução de Sintomas
+        const GEMINI_API_KEY = 'AIzaSyBIIxNvyHN1yuUH4ZWjU5KURmL9HK26KYk'; 
         
         // Inicializando pelo window para evitar problemas de escopo no Babel
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -99,7 +101,7 @@
             );
         };
 
-        // --- COMPONENTE DE AUTO-AJUSTE DE TEXTO (CORRIGIDO E INTELIGENTE) ---
+        // --- COMPONENTE DE AUTO-AJUSTE DE TEXTO (CABE TODO O TEXTO NA CAIXA) ---
         const AutoFitText = ({ text }) => {
             const containerRef = useRef(null);
             const textRef = useRef(null);
@@ -110,13 +112,13 @@
                 if (!containerEl || !textEl || !text) return;
 
                 const adjustSize = () => {
-                    let size = 14; // Tamanho base máximo
+                    let size = 14; // Tamanho base inicial
                     textEl.style.fontSize = size + 'px';
                     textEl.style.lineHeight = '1.3';
                     
                     const availableHeight = containerEl.clientHeight;
                     
-                    // Reduz a fonte até o texto caber perfeitamente na altura disponível do container
+                    // Reduz a fonte progressivamente até que o texto pare de transbordar a caixa
                     while (textEl.scrollHeight > availableHeight && size > 6) {
                         size -= 0.5;
                         textEl.style.fontSize = size + 'px';
@@ -125,7 +127,7 @@
 
                 adjustSize();
                 
-                // Dispara novamente após um pequeno atraso para garantir que o html2canvas capture o tamanho correto
+                // Delay leve para renderização do html2pdf
                 const timeoutId = setTimeout(adjustSize, 100);
                 return () => clearTimeout(timeoutId);
             }, [text]);
@@ -139,7 +141,7 @@
             );
         };
 
-        // --- LAYOUTS DE IMPRESSÃO (RÉPLICA DOS ANEXOS) ---
+        // --- LAYOUTS DE IMPRESSÃO ---
         const PrintLayout = ({ data, type, id, inventory }) => {
             if (!data) return null;
 
@@ -473,11 +475,7 @@
 
             const handleApiError = (err, context) => {
                 console.error(`Erro (${context}):`, err);
-                if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('Chave API'))) {
-                    alert(`⚠️ ERRO DE CONEXÃO COM O BANCO DE DADOS (${context}) ⚠️\n\nA requisição falhou. Verifique se a sua Chave API do Supabase está correta.\n\nA chave atual começa com "sb_publishable_", o que indica ser uma chave do STRIPE, não do Supabase. Chaves do Supabase começam com "eyJ...".`);
-                } else {
-                    alert(`Ocorreu um erro (${context}): ` + err.message);
-                }
+                alert(`Ocorreu um erro (${context}): ` + err.message);
             };
 
             const handleSaveInventoryItem = async (e) => {
@@ -565,8 +563,11 @@
 
             // INTEGRAÇÃO COM INTELIGÊNCIA ARTIFICIAL PARA TRADUÇÃO DE SINTOMAS
             const translateSymptomsWithAI = async (text) => {
-                const apiKey = ""; // A chave é injetada automaticamente pelo ambiente
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const apiKey = GEMINI_API_KEY || ""; 
+                if(!apiKey) throw new Error("Chave Gemini não configurada");
+
+                // Utilizando a API pública estável
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
                 
                 const prompt = `Atue como um médico triagista. Reescreva o relato do paciente leigo abaixo utilizando terminologia médica técnica e adequada para um prontuário (anamnese padrão). É IMPRESCINDÍVEL que você mantenha ABSOLUTAMENTE TODAS as informações fornecidas, incluindo queixas, sintomas, cronologia, alergias relatadas e medicamentos em uso. Não resuma ou omita nenhum detalhe, apenas traduza para o jargão médico. Mantenha o texto estruturado, objetivo e retorne-o inteiramente em CAIXA ALTA (MAIÚSCULAS). Retorne APENAS o texto traduzido final, sem introduções ou explicações.\n\nRelato original: ${text}`;
                 
@@ -606,7 +607,7 @@
                         finalSymptoms = await translateSymptomsWithAI(data.symptoms);
                     } catch (error) {
                         console.error("Erro na tradução:", error);
-                        alert("Não foi possível acessar a IA no momento. A ficha será gerada com os termos originais.");
+                        alert("Atenção: Não foi possível acessar a IA. A ficha será gerada com os termos originais.\n\nMotivo: Sua chave do Google Gemini ('GEMINI_API_KEY') não foi configurada ou está incorreta.");
                     } finally {
                         setIsTranslating(false);
                     }
