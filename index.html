@@ -564,8 +564,8 @@
                 const apiKey = GEMINI_API_KEY || ""; 
                 if(!apiKey) throw new Error("Chave Gemini não configurada");
 
-                // Utilizando a API pública estável
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                // Atualizado para o modelo "gemini-1.5-flash-latest" garantindo alta compatibilidade universal.
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
                 
                 const prompt = `Atue como um médico triagista. Reescreva o relato do paciente leigo abaixo utilizando terminologia médica técnica e adequada para um prontuário (anamnese padrão). É IMPRESCINDÍVEL que você mantenha ABSOLUTAMENTE TODAS as informações fornecidas, incluindo queixas, sintomas, cronologia, alergias relatadas e medicamentos em uso. Não resuma ou omita nenhum detalhe, apenas traduza para o jargão médico. Mantenha o texto estruturado, objetivo, contínuo (evite quebras de linha desnecessárias) e retorne-o inteiramente em CAIXA ALTA (MAIÚSCULAS). Retorne APENAS o texto traduzido final, sem introduções ou explicações.\n\nRelato original: ${text}`;
                 
