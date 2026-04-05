@@ -38,12 +38,14 @@
 
     <!-- CÓDIGO DO SISTEMA -->
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect, useMemo, useRef } = React;
 
         // ============================================================================
         // CONFIGURAÇÃO DO SUPABASE
         // ============================================================================
         const SUPABASE_URL = 'https://ohzbkwpoqeukbdyhoymf.supabase.co'; 
+        
+        // Substitua esta chave pela sua Chave API ANON/PUBLIC correta do Supabase (Começa com eyJ...)
         const SUPABASE_ANON_KEY = 'sb_publishable_v77SIohURbjCbolb3Glrtw_9fiHp6Mv';
         
         // Inicializando pelo window para evitar problemas de escopo no Babel
@@ -93,6 +95,46 @@
                             }}>❄</div>
                     ))}
                     <style>{`@keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg); } 100% { transform: translateY(110vh) rotate(360deg); } }`}</style>
+                </div>
+            );
+        };
+
+        // --- COMPONENTE DE AUTO-AJUSTE DE TEXTO (CORRIGIDO E INTELIGENTE) ---
+        const AutoFitText = ({ text }) => {
+            const containerRef = useRef(null);
+            const textRef = useRef(null);
+
+            useEffect(() => {
+                const containerEl = containerRef.current;
+                const textEl = textRef.current;
+                if (!containerEl || !textEl || !text) return;
+
+                const adjustSize = () => {
+                    let size = 14; // Tamanho base máximo
+                    textEl.style.fontSize = size + 'px';
+                    textEl.style.lineHeight = '1.3';
+                    
+                    const availableHeight = containerEl.clientHeight;
+                    
+                    // Reduz a fonte até o texto caber perfeitamente na altura disponível do container
+                    while (textEl.scrollHeight > availableHeight && size > 6) {
+                        size -= 0.5;
+                        textEl.style.fontSize = size + 'px';
+                    }
+                };
+
+                adjustSize();
+                
+                // Dispara novamente após um pequeno atraso para garantir que o html2canvas capture o tamanho correto
+                const timeoutId = setTimeout(adjustSize, 100);
+                return () => clearTimeout(timeoutId);
+            }, [text]);
+
+            return (
+                <div ref={containerRef} className="w-full h-full overflow-hidden flex flex-col">
+                    <div ref={textRef} className="whitespace-pre-wrap text-justify w-full font-sans break-words">
+                        {text}
+                    </div>
                 </div>
             );
         };
@@ -152,7 +194,7 @@
                             <Header />
                             <div className="border-t-2 border-b-2 border-black py-1 mb-6 mt-4"><h1 className="text-center font-bold text-xl uppercase">FICHA DE ATENDIMENTO AMBULATORIAL</h1></div>
                             
-                            <div className="border border-black p-4 mb-4 text-sm space-y-2">
+                            <div className="border border-black p-4 mb-4 text-sm space-y-2 shrink-0">
                                 <div className="flex justify-between">
                                     <span className="flex-1"><span className="font-bold">G'MUS:</span> {data.gmus}</span>
                                     <span className="flex-1"><span className="font-bold">DATA:</span> {data.date}</span>
@@ -164,7 +206,7 @@
                                 </div>
                             </div>
 
-                            <div className="border border-black p-4 mb-4 text-sm space-y-2">
+                            <div className="border border-black p-4 mb-4 text-sm space-y-2 shrink-0">
                                 <h3 className="font-bold border-b border-black pb-1 mb-2">SINAIS VITAIS E ANTROPOMETRIA</h3>
                                 <div className="grid grid-cols-3 gap-4">
                                     <div><span className="font-bold">PA:</span> {data.pa}</div>
@@ -180,17 +222,22 @@
                                 </div>
                             </div>
 
-                            <div className="border border-black p-4 mb-4 text-sm min-h-[150px]">
-                                <h3 className="font-bold border-b border-black pb-1 mb-2">SINTOMAS / QUEIXA PRINCIPAL</h3>
-                                <p className="whitespace-pre-wrap">{data.symptoms}</p>
+                            {/* CAIXAS ESTRITAS - Alturas maiores e fixas, contendo o AutoFitText para impedir cortes */}
+                            <div className="border border-black p-4 mb-4 text-sm h-[220px] flex flex-col shrink-0">
+                                <h3 className="font-bold border-b border-black pb-1 mb-2 shrink-0">SINTOMAS / QUEIXA PRINCIPAL</h3>
+                                <div className="flex-1 overflow-hidden relative min-h-0">
+                                    <AutoFitText text={data.symptoms || ''} />
+                                </div>
                             </div>
 
-                            <div className="border border-black p-4 mb-6 text-sm min-h-[150px]">
-                                <h3 className="font-bold border-b border-black pb-1 mb-2">DADOS MÉDICOS / EVOLUÇÃO</h3>
-                                <p className="whitespace-pre-wrap">{data.medicalData}</p>
+                            <div className="border border-black p-4 mb-6 text-sm h-[220px] flex flex-col shrink-0">
+                                <h3 className="font-bold border-b border-black pb-1 mb-2 shrink-0">DADOS MÉDICOS / EVOLUÇÃO</h3>
+                                <div className="flex-1 overflow-hidden relative min-h-0">
+                                    <AutoFitText text={data.medicalData || ''} />
+                                </div>
                             </div>
 
-                            <div className="mt-12 space-y-6">
+                            <div className="mt-auto space-y-6 shrink-0">
                                 <div className="flex justify-between">
                                     <div className="w-1/2 pr-4">
                                         <p className="font-bold mb-8">Profissional (Preenchimento):</p>
@@ -261,7 +308,7 @@
                                 <h2 className="font-bold text-lg underline mb-2">RESULTADO DO TESTE</h2>
                                 <div className="space-y-2 ml-4">
                                     <div className="flex items-center gap-2"><span className="font-bold">({data.result?.toUpperCase() === 'POSITIVO' ? 'X' : ' '})</span> POSITIVO</div>
-                                    <div className="flex items-center gap-2"><span className="font-bold">({data.result?.toUpperCase() === 'NEGATIVO' ? 'X' : ' '})</span> NEGATIVO</div>
+                                    <div className="flex items-center gap-2"><span className="font-bold text-xl">({data.result?.toUpperCase() === 'NEGATIVO' ? 'X' : ' '})</span> NEGATIVO</div>
                                 </div>
                             </div>
                             <div className="border border-black p-4 text-xs space-y-2 mb-6">
@@ -330,12 +377,12 @@
             const [pendingView, setPendingView] = useState(null);
             
             const [faDob, setFaDob] = useState('');
+            const [isTranslating, setIsTranslating] = useState(false); 
 
-            // Cálculo Dinâmico da Idade para a Ficha de Atendimento
             const faAge = useMemo(() => {
                 if (!faDob) return '';
                 const today = new Date();
-                const birthDate = new Date(faDob + 'T00:00:00'); // Evita bug de timezone
+                const birthDate = new Date(faDob + 'T00:00:00'); 
                 let age = today.getFullYear() - birthDate.getFullYear();
                 const m = today.getMonth() - birthDate.getMonth();
                 if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
@@ -344,7 +391,6 @@
                 return age + ' ANOS';
             }, [faDob]);
 
-            // Fetch Realtime Supabase
             useEffect(() => {
                 setDbStatus('conectado');
 
@@ -425,6 +471,15 @@
                 return data;
             };
 
+            const handleApiError = (err, context) => {
+                console.error(`Erro (${context}):`, err);
+                if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('Chave API'))) {
+                    alert(`⚠️ ERRO DE CONEXÃO COM O BANCO DE DADOS (${context}) ⚠️\n\nA requisição falhou. Verifique se a sua Chave API do Supabase está correta.\n\nA chave atual começa com "sb_publishable_", o que indica ser uma chave do STRIPE, não do Supabase. Chaves do Supabase começam com "eyJ...".`);
+                } else {
+                    alert(`Ocorreu um erro (${context}): ` + err.message);
+                }
+            };
+
             const handleSaveInventoryItem = async (e) => {
                 e.preventDefault();
                 const formData = new FormData(e.target);
@@ -443,7 +498,7 @@
                     setShowInventoryModal(false);
                     setEditingItem(null);
                 } catch (err) {
-                    alert("Erro ao salvar: " + err.message);
+                    handleApiError(err, "Salvar Estoque");
                 }
             };
 
@@ -453,7 +508,7 @@
                         const { error } = await supabaseClient.from('inventory').delete().eq('id', id);
                         if (error) throw error;
                     } catch (err) {
-                        alert("Erro ao excluir: " + err.message);
+                        handleApiError(err, "Excluir Estoque");
                     }
                 }
             };
@@ -470,7 +525,7 @@
                         const { error } = await supabaseClient.from('reports').delete().eq('id', id);
                         if (error) throw error;
                     } catch (err) {
-                        alert("Erro ao excluir: " + err.message);
+                        handleApiError(err, "Excluir Laudo");
                     }
                 }
             };
@@ -504,24 +559,69 @@
                         setPrintData(fullData);
                     }
                 } catch (err) { 
-                    alert("Erro ao gerar laudo: " + err.message);
+                    handleApiError(err, "Gerar Laudo");
                 }
             };
 
-            const handleFASubmit = (e) => {
+            // INTEGRAÇÃO COM INTELIGÊNCIA ARTIFICIAL PARA TRADUÇÃO DE SINTOMAS
+            const translateSymptomsWithAI = async (text) => {
+                const apiKey = ""; // A chave é injetada automaticamente pelo ambiente
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                
+                const prompt = `Atue como um médico triagista. Reescreva o relato do paciente leigo abaixo utilizando terminologia médica técnica e adequada para um prontuário (anamnese padrão). É IMPRESCINDÍVEL que você mantenha ABSOLUTAMENTE TODAS as informações fornecidas, incluindo queixas, sintomas, cronologia, alergias relatadas e medicamentos em uso. Não resuma ou omita nenhum detalhe, apenas traduza para o jargão médico. Mantenha o texto estruturado, objetivo e retorne-o inteiramente em CAIXA ALTA (MAIÚSCULAS). Retorne APENAS o texto traduzido final, sem introduções ou explicações.\n\nRelato original: ${text}`;
+                
+                for (let attempt = 0; attempt < 3; attempt++) {
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                        });
+                        
+                        if (!response.ok) throw new Error("Falha na API da IA");
+                        
+                        const result = await response.json();
+                        const translatedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                        
+                        if (translatedText) return translatedText.trim().toUpperCase();
+                    } catch (error) {
+                        if (attempt === 2) throw error; 
+                        await new Promise(res => setTimeout(res, 1000 * (attempt + 1))); 
+                    }
+                }
+                return text; 
+            };
+
+            const handleFASubmit = async (e) => {
                 e.preventDefault();
                 const formData = new FormData(e.target);
                 const data = convertToUppercase(Object.fromEntries(formData.entries()));
                 
+                let finalSymptoms = data.symptoms;
+
+                // Se houver sintomas digitados, chama a IA para traduzir
+                if (finalSymptoms && finalSymptoms.trim() !== '') {
+                    setIsTranslating(true);
+                    try {
+                        finalSymptoms = await translateSymptomsWithAI(data.symptoms);
+                    } catch (error) {
+                        console.error("Erro na tradução:", error);
+                        alert("Não foi possível acessar a IA no momento. A ficha será gerada com os termos originais.");
+                    } finally {
+                        setIsTranslating(false);
+                    }
+                }
+
                 const fullData = {
                     ...data,
+                    symptoms: finalSymptoms, 
                     type: 'fa',
                     age: faAge,
                     date: new Date().toLocaleDateString('pt-BR'),
                     technician: data.professionalName || 'ADMINISTRADOR'
                 };
 
-                // F.A apenas gera visualização PDF offline, não envia pro Supabase (conforme instrução "quando não houver internet")
+                // F.A apenas gera visualização PDF offline
                 setPrintData(fullData);
             };
 
@@ -541,7 +641,7 @@
                     }
                     e.target.reset();
                 } catch (err) { 
-                    alert("Erro ao salvar indicador: " + err.message);
+                    handleApiError(err, "Salvar Indicador");
                 }
             };
 
@@ -551,7 +651,7 @@
                         const { error } = await supabaseClient.from('indicators').delete().eq('id', id);
                         if (error) throw error;
                     } catch (err) { 
-                        alert("Erro ao excluir: " + err.message);
+                        handleApiError(err, "Excluir Indicador");
                     }
                 }
             };
@@ -829,7 +929,7 @@
                             </div>
                         )}
 
-                        {/* VIEW: FICHA DE ATENDIMENTO (F.A) OFFLINE */}
+                        {/* VIEW: FICHA DE ATENDIMENTO (F.A) OFFLINE COM IA */}
                         {view === 'fa' && (
                             <div className={styles.glassCard}>
                                 <div className="flex items-center gap-2 mb-6 border-b border-gray-700 pb-4">
@@ -872,8 +972,11 @@
 
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="text-xs text-gray-400 uppercase">Sintomas / Queixa Principal</label>
-                                            <textarea name="symptoms" rows="3" className={styles.input}></textarea>
+                                            <div className="flex justify-between items-center mb-1">
+                                                <label className="text-xs text-[#39ff14] font-bold uppercase"><Icon name="wand-magic-sparkles" size={12}/> Sintomas / Queixa Principal (Tradução IA)</label>
+                                                <span className="text-[10px] text-gray-500">Escreva termos leigos. A IA traduzirá para o PDF.</span>
+                                            </div>
+                                            <textarea name="symptoms" rows="3" placeholder="Ex: Paciente diz que a cabeça dói muito e tem vontade de vomitar..." className={styles.input}></textarea>
                                         </div>
                                         <div>
                                             <label className="text-xs text-gray-400 uppercase">Dados Médicos / Evolução</label>
@@ -886,7 +989,13 @@
                                         <input required name="professionalName" className={styles.input} />
                                     </div>
 
-                                    <button type="submit" className={`w-full py-4 mt-4 ${styles.neonButton}`}><Icon name="file-pdf" size={18} className="mr-2" /> Gerar Ficha para Imprimir</button>
+                                    <button type="submit" disabled={isTranslating} className={`w-full py-4 mt-4 ${styles.neonButton} ${isTranslating ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                        {isTranslating ? (
+                                            <React.Fragment><Icon name="spinner" className="fa-spin mr-2" /> Traduzindo Termos e Gerando Ficha...</React.Fragment>
+                                        ) : (
+                                            <React.Fragment><Icon name="file-pdf" size={18} className="mr-2" /> Gerar Ficha para Imprimir</React.Fragment>
+                                        )}
+                                    </button>
                                 </form>
                             </div>
                         )}
