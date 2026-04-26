@@ -210,8 +210,11 @@
                                     <span><span className="font-bold">SEXO:</span> {data.sex}</span>
                                 </div>
                                 <div className="flex justify-between border-t border-gray-300 pt-1">
-                                    <span className="flex-1"><span className="font-bold">INÍCIO DOS SINTOMAS:</span> {data.symptomsDate}</span>
+                                    <span className="flex-1"><span className="font-bold">UNIDADE DE REALIZAÇÃO:</span> {data.unit}</span>
                                     <span><span className="font-bold">DATA DA COLETA:</span> {data.collectionDate}</span>
+                                </div>
+                                <div className="flex justify-between border-t border-gray-300 pt-1">
+                                    <span className="flex-1"><span className="font-bold">INÍCIO DOS SINTOMAS:</span> {data.symptomsDate}</span>
                                 </div>
                             </div>
 
@@ -246,7 +249,7 @@
                                         <span><span className="font-bold">AMOSTRA:</span> {data.sampleType?.toUpperCase() === 'NASAL' ? 'SWAB NASAL' : 'SWAB NASOFARÍNGEO'}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span><span className="font-bold">FABRICANTE:</span> {data.manufacturer || 'ABBOTT PANBIO'}</span>
+                                        <span><span className="font-bold">FABRICANTE:</span> {data.manufacturer || 'OUTROS'}</span>
                                         <span><span className="font-bold">LOTE:</span> {p.covidLot || getLot('covid')}</span>
                                         <span><span className="font-bold">VALIDADE:</span> {p.covidValidity || getValidity('covid')}</span>
                                     </div>
@@ -286,7 +289,10 @@
                                     <span className="flex-1"><span className="font-bold">G'MUS:</span> {data.gmus}</span>
                                     <span className="flex-1"><span className="font-bold">DATA:</span> {data.date}</span>
                                 </div>
-                                <div className="border-t border-gray-300 pt-2"><span className="font-bold">PACIENTE:</span> {data.patientName}</div>
+                                <div className="border-t border-gray-300 pt-2 flex justify-between">
+                                    <span className="flex-1"><span className="font-bold">PACIENTE:</span> {data.patientName}</span>
+                                    <span className="flex-1"><span className="font-bold">IDENTIDADE/CPF:</span> {data.document}</span>
+                                </div>
                                 <div className="flex justify-between border-t border-gray-300 pt-2">
                                     <span className="flex-1"><span className="font-bold">NASCIMENTO:</span> {data.dob ? new Date(data.dob + 'T00:00:00').toLocaleDateString('pt-BR') : ''}</span>
                                     <span className="flex-1"><span className="font-bold">IDADE:</span> {data.age}</span>
@@ -372,14 +378,25 @@
                             <div className="border-t-2 border-b-2 border-black py-1 mb-6 mt-4"><h1 className="text-center font-bold text-xl uppercase">Laudo</h1></div>
                             <div className="border-2 border-black mb-6">
                                 <div className="bg-gray-200 border-b-2 border-black p-2 text-center font-bold">TESTE RÁPIDO DE ANTÍGENO COVID-19</div>
-                                <div className="p-2 space-y-2">
-                                    <div className="flex justify-between"><span><span className="font-bold">Nome do paciente:</span> {data.patientName}</span><span><span className="font-bold">Cidade:</span> NOVO HAMBURGO</span></div>
-                                    <div className="flex justify-between"><span><span className="font-bold">Sexo:</span> {data.sex}</span><span><span className="font-bold">Data de Nascimento:</span> {data.dob}</span></div>
+                                <div className="p-2 space-y-2 text-sm">
+                                    <div className="flex justify-between border-b border-gray-300 pb-1">
+                                        <span><span className="font-bold">NOME DO PACIENTE:</span> {data.patientName}</span>
+                                        <span><span className="font-bold">IDENTIDADE/CPF:</span> {data.document}</span>
+                                    </div>
+                                    <div className="flex justify-between border-b border-gray-300 pb-1">
+                                        <span><span className="font-bold">DATA DE NASCIMENTO:</span> {data.dob}</span>
+                                        <span><span className="font-bold">SEXO:</span> {data.sex}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span><span className="font-bold">UNIDADE:</span> {data.unit}</span>
+                                        <span><span className="font-bold">INÍCIO DOS SINTOMAS:</span> {data.symptomsDate}</span>
+                                        <span><span className="font-bold">COLETA:</span> {data.collectionDate}</span>
+                                    </div>
                                 </div>
                             </div>
                             <div className="border-l-4 border-black pl-4 mb-6 space-y-2">
                                 <h2 className="font-bold text-lg underline">TESTE</h2>
-                                <p><span className="font-bold">Fabricante:</span> {data.manufacturer || 'ABBOTT PANBIO'}</p>
+                                <p><span className="font-bold">Fabricante:</span> {data.manufacturer || 'OUTROS'}</p>
                                 <p><span className="font-bold">Lote:</span> {getLot('covid')}</p>
                                 <p><span className="font-bold">Método:</span> IMUNOCROMATOGRAFIA</p>
                                 <div className="flex gap-4"><span className="font-bold">Amostra:</span><span>({data.sampleType?.toUpperCase() === 'NASOFARINGEO' ? 'X' : ' '}) SWAB NASOFARÍNGEO</span><span>({data.sampleType?.toUpperCase() === 'NASAL' ? 'X' : ' '}) SWAB NASAL</span></div>
@@ -408,10 +425,10 @@
                             <Header />
                             <div className="space-y-4 mb-8 mt-8 text-sm">
                                 <div className="border-b border-black pb-1 flex"><span className="font-bold w-40">Nome do usuário:</span> {data.patientName}</div>
-                                <div className="flex gap-4 border-b border-black pb-1"><span className="flex-1"><span className="font-bold">Prontuário:</span> {data.recordId || '-----'}</span><span className="flex-1"><span className="font-bold">Identidade:</span> {data.document}</span></div>
+                                <div className="flex gap-4 border-b border-black pb-1"><span className="flex-1"><span className="font-bold">Prontuário:</span> {data.recordId || '-----'}</span><span className="flex-1"><span className="font-bold">Identidade/CPF:</span> {data.document}</span></div>
                                 <div className="flex gap-4 border-b border-black pb-1"><span className="flex-1"><span className="font-bold">Data de Nascimento:</span> {data.dob}</span><span className="flex-1"><span className="font-bold">Sexo:</span> FEMININO</span></div>
                                 <div className="border-b border-black pb-1 flex"><span className="font-bold w-48">Unidade de realização:</span> {data.unit}</div>
-                                <div className="border-b border-black pb-1 flex"><span className="font-bold w-48">Data da coleta:</span> {data.collectionDate}</div>
+                                <div className="flex gap-4 border-b border-black pb-1"><span className="flex-1"><span className="font-bold">Início dos Sintomas:</span> {data.symptomsDate}</span><span className="flex-1"><span className="font-bold">Data da coleta:</span> {data.collectionDate}</span></div>
                             </div>
                             <h1 className="text-center font-bold text-xl my-8">TESTE RÁPIDO PARA DETECÇÃO DE HCG</h1>
                             <div className="border border-black p-2 mb-6">
@@ -617,7 +634,7 @@
                     fullData.result = `DENGUE: ${data.dengueResult} / COVID: ${data.covidResult}`;
                     fullData.lot = `D: ${data.dengueLot} / C: ${data.covidLot}`;
                     fullData.validity = `D: ${data.dengueValidity} / C: ${data.covidValidity}`;
-                    fullData.manufacturer = data.covidManufacturer || 'ABBOTT PANBIO';
+                    fullData.manufacturer = data.covidManufacturer || 'OUTROS';
                     fullData.sampleType = data.covidSampleType;
                     
                     delete fullData.dengueResult;
@@ -995,12 +1012,16 @@
                                 </div>
                                 <form onSubmit={handleFASubmit} className="space-y-6">
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        <div><label className="text-xs text-gray-400 uppercase">Data</label><input name="date" defaultValue={new Date().toLocaleDateString('pt-BR')} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Data</label><input name="date" value={new Date().toLocaleDateString('pt-BR')} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">G'MUS</label><input name="gmus" className={styles.input} /></div>
                                         <div className="col-span-2"><label className="text-xs text-gray-400 uppercase">Nome do Paciente</label><input required name="patientName" className={styles.input} /></div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label className="text-xs text-gray-400 uppercase">Identidade/CPF</label>
+                                            <input required name="document" className={styles.input} />
+                                        </div>
                                         <div>
                                             <label className="text-xs text-gray-400 uppercase">Data de Nascimento</label>
                                             <input required name="dob" type="date" value={faDob} onChange={(e) => setFaDob(e.target.value)} className={styles.input} />
@@ -1089,16 +1110,16 @@
                                 </div>
                                 <form onSubmit={handleReportSubmit} className="space-y-6" key={editingReport ? editingReport.id : 'new-dengue-covid'}>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div><label className="text-xs text-gray-400">Nome do Paciente</label><input required name="patientName" defaultValue={editingReport?.patientName || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Identidade/CPF</label><input required name="document" defaultValue={editingReport?.document || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Data de Nascimento</label><input required name="dob" type="date" defaultValue={editingReport?.dob || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Sexo</label><select name="sex" defaultValue={editingReport?.sex?.toUpperCase() || 'MASCULINO'} className={styles.input}><option>MASCULINO</option><option>FEMININO</option></select></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Nome do Paciente</label><input required name="patientName" defaultValue={editingReport?.patientName || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Identidade/CPF</label><input required name="document" defaultValue={editingReport?.document || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Data de Nascimento</label><input required name="dob" type="date" defaultValue={editingReport?.dob || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Sexo</label><select name="sex" defaultValue={editingReport?.sex?.toUpperCase() || 'MASCULINO'} className={styles.input}><option>MASCULINO</option><option>FEMININO</option></select></div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div><label className="text-xs text-gray-400">Unidade de Realização</label><input name="unit" defaultValue={editingReport?.unit || "UBS CANUDOS"} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Início dos Sintomas</label><input required name="symptomsDate" type="date" defaultValue={editingReport?.symptomsDate || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Data da Coleta</label><input required name="collectionDate" type="date" defaultValue={editingReport?.collectionDate || new Date().toISOString().split('T')[0]} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Nome do Profissional</label><input required name="professionalName" defaultValue={editingReport?.professionalName || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Unidade de Realização</label><input name="unit" value="UBS SANTO AFONSO" readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Início dos Sintomas</label><input required name="symptomsDate" type="date" defaultValue={editingReport?.symptomsDate || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Data da Coleta</label><input required name="collectionDate" type="date" value={editingReport?.collectionDate || new Date().toISOString().split('T')[0]} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Nome do Profissional</label><input required name="professionalName" defaultValue={editingReport?.professionalName || ''} className={styles.input} /></div>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1106,8 +1127,8 @@
                                             <h4 className="text-sm font-bold text-gray-300 mb-4 border-b border-gray-600 pb-2 flex items-center gap-2"><Icon name="syringe"/> TESTE DENGUE NS1</h4>
                                             <div className="space-y-4">
                                                 <div className="grid grid-cols-2 gap-4">
-                                                    <div><label className="text-xs text-gray-400">Lote Dengue</label><input required name="dengueLot" defaultValue={p.dengueLot || availableDengueKit?.lot || ''} className={styles.input} /></div>
-                                                    <div><label className="text-xs text-gray-400">Val. Dengue</label><input required name="dengueValidity" defaultValue={p.dengueValidity || availableDengueKit?.validity || ''} className={styles.input} /></div>
+                                                    <div><label className="text-xs text-gray-400 uppercase">Lote Dengue</label><input required name="dengueLot" value={p.dengueLot || availableDengueKit?.lot || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                                    <div><label className="text-xs text-gray-400 uppercase">Val. Dengue</label><input required name="dengueValidity" value={p.dengueValidity || availableDengueKit?.validity || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                                 </div>
                                                 <div>
                                                     <label className="block text-xs font-bold mb-2 text-[#39ff14]">Resultado Dengue</label>
@@ -1123,13 +1144,13 @@
                                         <div className="border border-gray-700 p-4 rounded bg-white/5">
                                             <h4 className="text-sm font-bold text-gray-300 mb-4 border-b border-gray-600 pb-2 flex items-center gap-2"><Icon name="temperature-half"/> TESTE COVID-19</h4>
                                             <div className="space-y-4">
-                                                <div><label className="text-xs text-gray-400">Fabricante</label><input name="covidManufacturer" defaultValue={editingReport?.manufacturer || "ABBOTT PANBIO"} className={styles.input} /></div>
+                                                <div><label className="text-xs text-gray-400 uppercase">Fabricante</label><input name="covidManufacturer" value="OUTROS" readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                                 <div className="grid grid-cols-2 gap-4">
-                                                    <div><label className="text-xs text-gray-400">Lote Covid</label><input required name="covidLot" defaultValue={p.covidLot || availableCovidKit?.lot || ''} className={styles.input} /></div>
-                                                    <div><label className="text-xs text-gray-400">Val. Covid</label><input required name="covidValidity" defaultValue={p.covidValidity || availableCovidKit?.validity || ''} className={styles.input} /></div>
+                                                    <div><label className="text-xs text-gray-400 uppercase">Lote Covid</label><input required name="covidLot" value={p.covidLot || availableCovidKit?.lot || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                                    <div><label className="text-xs text-gray-400 uppercase">Val. Covid</label><input required name="covidValidity" value={p.covidValidity || availableCovidKit?.validity || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                                 </div>
                                                 <div>
-                                                    <label className="text-xs text-gray-400 mb-1 block">Tipo de Amostra</label>
+                                                    <label className="text-xs text-gray-400 mb-1 block uppercase">Tipo de Amostra</label>
                                                     <div className="flex gap-4 text-sm">
                                                         <label className="flex items-center gap-2"><input type="radio" name="covidSampleType" value="nasofaringeo" defaultChecked={!editingReport || editingReport.sampleType?.toUpperCase() === 'NASOFARINGEO'} className={`accent-[${NEON_GREEN}]`}/> NASOFARÍNGEO</label>
                                                         <label className="flex items-center gap-2"><input type="radio" name="covidSampleType" value="nasal" defaultChecked={editingReport?.sampleType?.toUpperCase() === 'NASAL'} className={`accent-[${NEON_GREEN}]`}/> NASAL</label>
@@ -1160,22 +1181,22 @@
                                 </div>
                                 <form onSubmit={handleReportSubmit} className="space-y-6" key={editingReport ? editingReport.id : 'new-dengue'}>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div><label className="text-xs text-gray-400">Nome do Paciente</label><input required name="patientName" defaultValue={editingReport?.patientName || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Identidade/CPF</label><input required name="document" defaultValue={editingReport?.document || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Data de Nascimento</label><input required name="dob" type="date" defaultValue={editingReport?.dob || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Sexo</label><select name="sex" defaultValue={editingReport?.sex?.toUpperCase() || 'MASCULINO'} className={styles.input}><option>MASCULINO</option><option>FEMININO</option></select></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Nome do Paciente</label><input required name="patientName" defaultValue={editingReport?.patientName || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Identidade/CPF</label><input required name="document" defaultValue={editingReport?.document || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Data de Nascimento</label><input required name="dob" type="date" defaultValue={editingReport?.dob || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Sexo</label><select name="sex" defaultValue={editingReport?.sex?.toUpperCase() || 'MASCULINO'} className={styles.input}><option>MASCULINO</option><option>FEMININO</option></select></div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div><label className="text-xs text-gray-400">Unidade de Realização</label><input name="unit" defaultValue={editingReport?.unit || "UBS CANUDOS"} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Início dos Sintomas</label><input required name="symptomsDate" type="date" defaultValue={editingReport?.symptomsDate || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Data da Coleta</label><input required name="collectionDate" type="date" defaultValue={editingReport?.collectionDate || new Date().toISOString().split('T')[0]} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Nome do Profissional</label><input required name="professionalName" defaultValue={editingReport?.professionalName || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Unidade de Realização</label><input name="unit" value="UBS SANTO AFONSO" readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Início dos Sintomas</label><input required name="symptomsDate" type="date" defaultValue={editingReport?.symptomsDate || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Data da Coleta</label><input required name="collectionDate" type="date" value={editingReport?.collectionDate || new Date().toISOString().split('T')[0]} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Nome do Profissional</label><input required name="professionalName" defaultValue={editingReport?.professionalName || ''} className={styles.input} /></div>
                                     </div>
                                     <div className="border border-gray-700 p-4 rounded">
                                         <h4 className="text-sm font-bold text-gray-300 mb-2">Dados do Kit</h4>
-                                        <div className="grid grid-cols-3 gap-4">
-                                            <div><label className="text-xs text-gray-400">Lote</label><input required name="lot" defaultValue={editingReport?.lot || availableKit?.lot || ''} className={styles.input} /></div>
-                                            <div><label className="text-xs text-gray-400">Validade</label><input required name="validity" defaultValue={editingReport?.validity || availableKit?.validity || ''} className={styles.input} /></div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div><label className="text-xs text-gray-400 uppercase">Lote</label><input required name="lot" value={editingReport?.lot || availableKit?.lot || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">Validade</label><input required name="validity" value={editingReport?.validity || availableKit?.validity || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                         </div>
                                     </div>
                                     <div>
@@ -1199,22 +1220,28 @@
                                 </div>
                                 <form onSubmit={handleReportSubmit} className="space-y-6" key={editingReport ? editingReport.id : 'new-covid'}>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="col-span-2"><label className="text-xs text-gray-400">Nome do Paciente</label><input required name="patientName" defaultValue={editingReport?.patientName || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Data de Nascimento</label><input required name="dob" type="date" defaultValue={editingReport?.dob || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Sexo</label><select name="sex" defaultValue={editingReport?.sex?.toUpperCase() || 'MASCULINO'} className={styles.input}><option>MASCULINO</option><option>FEMININO</option></select></div>
-                                        <div className="col-span-2"><label className="text-xs text-gray-400">Nome do Profissional</label><input required name="professionalName" defaultValue={editingReport?.professionalName || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Nome do Paciente</label><input required name="patientName" defaultValue={editingReport?.patientName || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Identidade/CPF</label><input required name="document" defaultValue={editingReport?.document || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Data de Nascimento</label><input required name="dob" type="date" defaultValue={editingReport?.dob || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Sexo</label><select name="sex" defaultValue={editingReport?.sex?.toUpperCase() || 'MASCULINO'} className={styles.input}><option>MASCULINO</option><option>FEMININO</option></select></div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div><label className="text-xs text-gray-400 uppercase">Unidade de Realização</label><input name="unit" value="UBS SANTO AFONSO" readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Início dos Sintomas</label><input required name="symptomsDate" type="date" defaultValue={editingReport?.symptomsDate || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Data da Coleta</label><input required name="collectionDate" type="date" value={editingReport?.collectionDate || new Date().toISOString().split('T')[0]} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Nome do Profissional</label><input required name="professionalName" defaultValue={editingReport?.professionalName || ''} className={styles.input} /></div>
                                     </div>
                                     <div className="border border-gray-700 p-4 rounded">
                                         <h4 className="text-sm font-bold text-gray-300 mb-2">Dados do Kit</h4>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div><label className="text-xs text-gray-400">Fabricante</label><input name="manufacturer" defaultValue={editingReport?.manufacturer || "ABBOTT PANBIO"} className={styles.input} /></div>
-                                            <div><label className="text-xs text-gray-400">Lote</label><input required name="lot" defaultValue={editingReport?.lot || availableKit?.lot || ''} className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">Fabricante</label><input name="manufacturer" value="OUTROS" readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">Lote</label><input required name="lot" value={editingReport?.lot || availableKit?.lot || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                         </div>
                                         <div className="mt-4">
-                                            <label className="text-xs text-gray-400 mb-1 block">Tipo de Amostra</label>
+                                            <label className="text-xs text-gray-400 mb-1 block uppercase">Tipo de Amostra</label>
                                             <div className="flex gap-4">
-                                                <label className="flex items-center gap-2"><input type="radio" name="sampleType" value="nasofaringeo" defaultChecked={editingReport ? editingReport.sampleType?.toUpperCase() === 'NASOFARINGEO' : true} className={`accent-[${NEON_GREEN}]`}/> SWAB NASOFARÍNGEO</label>
-                                                <label className="flex items-center gap-2"><input type="radio" name="sampleType" value="nasal" defaultChecked={editingReport ? editingReport.sampleType?.toUpperCase() === 'NASAL' : false} className={`accent-[${NEON_GREEN}]`}/> SWAB NASAL</label>
+                                                <label className="flex items-center gap-2"><input type="radio" name="sampleType" value="nasofaringeo" defaultChecked={!editingReport || editingReport.sampleType?.toUpperCase() === 'NASOFARINGEO'} className={`accent-[${NEON_GREEN}]`}/> SWAB NASOFARÍNGEO</label>
+                                                <label className="flex items-center gap-2"><input type="radio" name="sampleType" value="nasal" defaultChecked={editingReport?.sampleType?.toUpperCase() === 'NASAL'} className={`accent-[${NEON_GREEN}]`}/> SWAB NASAL</label>
                                             </div>
                                         </div>
                                     </div>
@@ -1222,7 +1249,7 @@
                                         <label className={`block text-sm font-bold mb-2 text-[${NEON_GREEN}]`}>Resultado</label>
                                         <div className="flex gap-6">
                                             <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Positivo" defaultChecked={editingReport ? editingReport.result?.toUpperCase() === 'POSITIVO' : false} className={`accent-[${NEON_GREEN}]`}/> POSITIVO</label>
-                                            <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Negativo" defaultChecked={editingReport ? editingReport.result?.toUpperCase() === 'NEGATIVO' : true} className={`accent-[${NEON_GREEN}]`}/> NEGATIVO</label>
+                                            <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Negativo" defaultChecked={!editingReport || editingReport.result?.toUpperCase() === 'NEGATIVO'} className={`accent-[${NEON_GREEN}]`}/> NEGATIVO</label>
                                         </div>
                                     </div>
                                     <button type="submit" className={`w-full py-4 mt-4 ${styles.neonButton}`}>{editingReport ? 'Atualizar e Visualizar Laudo' : 'Visualizar Laudo'}</button>
@@ -1238,27 +1265,30 @@
                                 </div>
                                 <form onSubmit={handleReportSubmit} className="space-y-6" key={editingReport ? editingReport.id : 'new-hcg'}>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div><label className="text-xs text-gray-400">Nome do Paciente</label><input required name="patientName" defaultValue={editingReport?.patientName || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Identidade</label><input required name="document" defaultValue={editingReport?.document || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Data de Nascimento</label><input required name="dob" type="date" defaultValue={editingReport?.dob || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Prontuário</label><input name="recordId" defaultValue={editingReport?.recordId || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Unidade</label><input name="unit" defaultValue={editingReport?.unit || "UBS CANUDOS"} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400">Data da Coleta</label><input required name="collectionDate" type="date" defaultValue={editingReport?.collectionDate || new Date().toISOString().split('T')[0]} className={styles.input} /></div>
-                                        <div className="col-span-2"><label className="text-xs text-gray-400">Nome do Profissional</label><input required name="professionalName" defaultValue={editingReport?.professionalName || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Nome do Paciente</label><input required name="patientName" defaultValue={editingReport?.patientName || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Identidade/CPF</label><input required name="document" defaultValue={editingReport?.document || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Data de Nascimento</label><input required name="dob" type="date" defaultValue={editingReport?.dob || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Prontuário</label><input required name="recordId" defaultValue={editingReport?.recordId || ''} className={styles.input} /></div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4 mt-4">
+                                        <div><label className="text-xs text-gray-400 uppercase">Unidade de Realização</label><input name="unit" value="UBS SANTO AFONSO" readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Início dos Sintomas</label><input required name="symptomsDate" type="date" defaultValue={editingReport?.symptomsDate || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Data da Coleta</label><input required name="collectionDate" type="date" value={editingReport?.collectionDate || new Date().toISOString().split('T')[0]} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Nome do Profissional</label><input required name="professionalName" defaultValue={editingReport?.professionalName || ''} className={styles.input} /></div>
                                     </div>
                                     <div className="border border-gray-700 p-4 rounded">
                                         <h4 className="text-sm font-bold text-gray-300 mb-2">Dados do Kit</h4>
                                         <div className="grid grid-cols-3 gap-4">
-                                            <div><label className="text-xs text-gray-400">Marca/Teste</label><input name="brand" defaultValue={editingReport?.brand || "DETECT HCG"} className={styles.input} /></div>
-                                            <div><label className="text-xs text-gray-400">Lote</label><input required name="lot" defaultValue={editingReport?.lot || availableKit?.lot || ''} className={styles.input} /></div>
-                                            <div><label className="text-xs text-gray-400">Validade</label><input required name="validity" defaultValue={editingReport?.validity || availableKit?.validity || ''} className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">Marca/Teste</label><input name="brand" defaultValue="DETECT HCG" className={styles.input} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">Lote</label><input required name="lot" value={editingReport?.lot || availableKit?.lot || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                            <div><label className="text-xs text-gray-400 uppercase">Validade</label><input required name="validity" value={editingReport?.validity || availableKit?.validity || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                         </div>
                                     </div>
                                     <div>
                                         <label className={`block text-sm font-bold mb-2 text-[${NEON_GREEN}]`}>Resultado</label>
                                         <div className="flex gap-6">
                                             <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Positivo" defaultChecked={editingReport ? editingReport.result?.toUpperCase() === 'POSITIVO' : false} className={`accent-[${NEON_GREEN}]`}/> POSITIVO (&gt; 25mUI/mL)</label>
-                                            <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Negativo" defaultChecked={editingReport ? editingReport.result?.toUpperCase() === 'NEGATIVO' : true} className={`accent-[${NEON_GREEN}]`}/> NEGATIVO (&lt; 25mUI/mL)</label>
+                                            <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Negativo" defaultChecked={!editingReport || editingReport.result?.toUpperCase() === 'NEGATIVO'} className={`accent-[${NEON_GREEN}]`}/> NEGATIVO (&lt; 25mUI/mL)</label>
                                         </div>
                                     </div>
                                     <button type="submit" className={`w-full py-4 mt-4 ${styles.neonButton}`}>{editingReport ? 'Atualizar e Visualizar Laudo' : 'Visualizar Laudo'}</button>
