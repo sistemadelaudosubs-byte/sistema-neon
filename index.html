@@ -26,7 +26,7 @@
 
     <style>
         body { margin: 0; background-color: #0a0a0a; color: white; font-family: monospace; overflow: hidden; }
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0a0a0a; }
         ::-webkit-scrollbar-thumb { background: #39ff14; border-radius: 4px; }
         input, textarea, select { text-transform: uppercase; }
@@ -58,8 +58,8 @@
         const styles = {
             neonText: `text-[#39ff14] drop-shadow-[0_0_5px_#39ff14]`,
             neonButton: `bg-transparent border border-[#39ff14] text-[#39ff14] hover:bg-[#39ff14] hover:text-black transition-all duration-300 shadow-[0_0_10px_#39ff14] hover:shadow-[0_0_20px_#39ff14] font-bold uppercase tracking-wider`,
-            glassCard: `bg-black/80 backdrop-blur-md border border-[#39ff14]/30 rounded-xl p-6 shadow-[0_0_15px_rgba(57,255,20,0.1)]`,
-            input: `bg-black/50 border border-[#39ff14]/50 text-white rounded p-2 focus:outline-none focus:border-[#39ff14] focus:shadow-[0_0_5px_#39ff14] w-full uppercase`,
+            glassCard: `bg-black/80 backdrop-blur-md border border-[#39ff14]/30 rounded-xl p-4 sm:p-6 shadow-[0_0_15px_rgba(57,255,20,0.1)]`,
+            input: `bg-black/50 border border-[#39ff14]/50 text-white rounded p-2 focus:outline-none focus:border-[#39ff14] focus:shadow-[0_0_5px_#39ff14] w-full uppercase text-sm`,
         };
 
         const Icon = ({ name, size = 16, color = "currentColor", className = "" }) => (
@@ -69,7 +69,7 @@
         const Snowfall = () => {
             const [flakes, setFlakes] = useState([]);
             useEffect(() => {
-                const initialFlakes = Array.from({ length: 50 }).map(() => ({
+                const initialFlakes = Array.from({ length: 30 }).map(() => ({
                     id: Math.random(),
                     left: Math.random() * 100,
                     animationDuration: Math.random() * 3 + 2 + 's',
@@ -84,7 +84,7 @@
             }, []);
 
             return (
-                <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+                <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden hidden sm:block">
                     {flakes.map((flake) => (
                         <div key={flake.id} className="absolute text-white/80"
                             style={{
@@ -428,7 +428,7 @@
                                 <div className="flex gap-4 border-b border-black pb-1"><span className="flex-1"><span className="font-bold">Prontuário:</span> {data.recordId || '-----'}</span><span className="flex-1"><span className="font-bold">Identidade/CPF:</span> {data.document}</span></div>
                                 <div className="flex gap-4 border-b border-black pb-1"><span className="flex-1"><span className="font-bold">Data de Nascimento:</span> {data.dob}</span><span className="flex-1"><span className="font-bold">Sexo:</span> FEMININO</span></div>
                                 <div className="border-b border-black pb-1 flex"><span className="font-bold w-48">Unidade de realização:</span> {data.unit}</div>
-                                <div className="flex gap-4 border-b border-black pb-1"><span className="flex-1"><span className="font-bold">Início dos Sintomas:</span> {data.symptomsDate}</span><span className="flex-1"><span className="font-bold">Data da coleta:</span> {data.collectionDate}</span></div>
+                                <div className="flex gap-4 border-b border-black pb-1"><span className="flex-1"><span className="font-bold">Data da coleta:</span> {data.collectionDate}</span></div>
                             </div>
                             <h1 className="text-center font-bold text-xl my-8">TESTE RÁPIDO PARA DETECÇÃO DE HCG</h1>
                             <div className="border border-black p-2 mb-6">
@@ -473,6 +473,7 @@
             const [pendingView, setPendingView] = useState(null);
             
             const [faDob, setFaDob] = useState('');
+            const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
             const faAge = useMemo(() => {
                 if (!faDob) return '';
@@ -523,9 +524,11 @@
             const handleProtectedNavigation = (targetView) => {
                 if (isAdminUnlocked) {
                     setView(targetView);
+                    setIsSidebarOpen(false);
                 } else {
                     setPendingView(targetView);
                     setShowAdminLogin(true);
+                    setIsSidebarOpen(false);
                 }
             };
 
@@ -629,7 +632,6 @@
                     technician: data.professionalName || 'ADMINISTRADOR (TÉCNICO RESP.)'
                 };
 
-                // Formatação especial para empacotar os dois laudos no formato do banco existente
                 if (selectedReportType === 'dengue_covid') {
                     fullData.result = `DENGUE: ${data.dengueResult} / COVID: ${data.covidResult}`;
                     fullData.lot = `D: ${data.dengueLot} / C: ${data.covidLot}`;
@@ -789,20 +791,20 @@
 
             if (!isAuthenticated) {
                 return (
-                    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center relative overflow-hidden font-mono text-white">
+                    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center relative overflow-hidden font-mono text-white p-4">
                         <Snowfall />
-                        <div className={`relative z-10 w-96 ${styles.glassCard} text-center`}>
+                        <div className={`relative z-10 w-full max-w-sm sm:max-w-md ${styles.glassCard} text-center`}>
                             <div className="mb-6 flex justify-center animate-pulse">
                                 <Icon name="heart-pulse" size={64} color={NEON_GREEN} />
                             </div>
-                            <h1 className={`text-3xl font-bold mb-2 ${styles.neonText} uppercase`}>Laboratório Neon</h1>
-                            <p className="text-white/60 mb-2 text-sm">Acesso ao Sistema</p>
+                            <h1 className={`text-2xl sm:text-3xl font-bold mb-2 ${styles.neonText} uppercase`}>Laboratório Neon</h1>
+                            <p className="text-white/60 mb-2 text-xs sm:text-sm">Acesso ao Sistema</p>
                             <div className="flex justify-center items-center gap-2 mb-8 text-xs text-gray-500">
                                 <Icon name="cloud" size={12} color={dbStatus.includes('conectado') ? '#22c55e' : '#ef4444'} />
                                 Banco: {dbStatus}
                             </div>
                             <div className="space-y-4">
-                                <button onClick={handleLogin} className={`w-full py-3 rounded ${styles.neonButton}`}>ENTRAR NO SISTEMA</button>
+                                <button onClick={handleLogin} className={`w-full py-3 rounded ${styles.neonButton} text-sm sm:text-base`}>ENTRAR NO SISTEMA</button>
                             </div>
                             <div className="mt-6 flex flex-col gap-1 text-[10px] text-white/40">
                                 <span>SISTEMA ÚNICO HTML | SUPABASE</span>
@@ -816,22 +818,22 @@
             if (printData) {
                 return (
                     <div className="min-h-screen bg-gray-900 flex flex-col items-center pt-8 pb-20 relative z-50 overflow-y-auto">
-                        <div className={`fixed top-0 left-0 right-0 bg-black/90 p-4 flex justify-between items-center shadow-lg border-b border-[${NEON_GREEN}]/30 z-[100] no-print`}>
-                            <div className="flex items-center gap-4">
+                        <div className={`fixed top-0 left-0 right-0 bg-black/90 p-4 flex flex-col sm:flex-row justify-between items-center shadow-lg border-b border-[${NEON_GREEN}]/30 z-[100] no-print gap-4`}>
+                            <div className="flex items-center gap-4 w-full sm:w-auto">
                                 <button onClick={() => { setPrintData(null); setView('dashboard'); setSelectedReportType(null); }} className={`text-white hover:text-[${NEON_GREEN}] flex items-center gap-2`}>
                                     <Icon name="arrow-left" size={16} /> Voltar
                                 </button>
-                                <span className="text-white font-bold">Visualização do Documento</span>
+                                <span className="text-white font-bold text-sm sm:text-base">Visualização do Documento</span>
                             </div>
-                            <div className="flex gap-4">
-                                <button onClick={() => window.print()} className="bg-white text-black px-6 py-2 rounded font-bold hover:bg-gray-200 flex items-center gap-2"><Icon name="print"/> Imprimir</button>
-                                <button onClick={downloadPdf} disabled={isGeneratingPdf} className={`bg-[${NEON_GREEN}] text-black px-6 py-2 rounded font-bold hover:bg-[#32cc12] flex items-center gap-2 disabled:opacity-50`}>
+                            <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
+                                <button onClick={() => window.print()} className="bg-white text-black px-4 sm:px-6 py-2 rounded font-bold hover:bg-gray-200 flex items-center gap-2 whitespace-nowrap text-sm"><Icon name="print"/> Imprimir</button>
+                                <button onClick={downloadPdf} disabled={isGeneratingPdf} className={`bg-[${NEON_GREEN}] text-black px-4 sm:px-6 py-2 rounded font-bold hover:bg-[#32cc12] flex items-center gap-2 disabled:opacity-50 whitespace-nowrap text-sm`}>
                                     {isGeneratingPdf ? 'Gerando...' : <React.Fragment><Icon name="download"/> Baixar PDF</React.Fragment>}
                                 </button>
                             </div>
                         </div>
-                        <div className="mt-16 print:mt-0 print:absolute print:top-0 print:left-0 print:w-full flex justify-center w-full">
-                            <div className="shadow-2xl">
+                        <div className="mt-32 sm:mt-16 print:mt-0 w-full overflow-x-auto flex justify-start sm:justify-center p-4 print:p-0">
+                            <div className="shadow-2xl mx-auto shrink-0" style={{ width: '210mm' }}>
                                 <PrintLayout data={printData} type={printData.type} id="report-content" inventory={inventory} />
                             </div>
                         </div>
@@ -843,9 +845,14 @@
                 <div className="min-h-screen bg-[#0a0a0a] text-white font-mono relative overflow-hidden flex">
                     <Snowfall />
 
+                    {/* OVERLAY DO MENU MOBILE */}
+                    {isSidebarOpen && (
+                        <div className="fixed inset-0 bg-black/80 z-[50] md:hidden backdrop-blur-sm transition-opacity" onClick={() => setIsSidebarOpen(false)}></div>
+                    )}
+
                     {showAdminLogin && (
-                        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-in fade-in zoom-in duration-200">
-                            <div className={`${styles.glassCard} w-96 text-center relative border border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.2)]`}>
+                        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-in fade-in zoom-in duration-200">
+                            <div className={`${styles.glassCard} w-[95%] max-w-md text-center relative border border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.2)]`}>
                                 <button onClick={() => setShowAdminLogin(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white"><Icon name="xmark" size={20}/></button>
                                 <div className="flex justify-center mb-4"><Icon name="lock" size={48} color="#eab308" /></div>
                                 <h2 className="text-xl font-bold text-white mb-2 uppercase tracking-widest">Acesso Restrito</h2>
@@ -858,16 +865,20 @@
                         </div>
                     )}
 
-                    <aside className={`w-64 ${styles.glassCard} m-4 mr-0 flex flex-col z-10 h-[95vh]`}>
-                        <div className="flex items-center gap-2 mb-8 border-b border-white/10 pb-4">
-                            <Icon name="heart-pulse" size={24} color={NEON_GREEN} />
-                            <span className={`font-bold text-lg ${styles.neonText}`}>LAB SYSTEM</span>
+                    {/* SIDEBAR */}
+                    <aside className={`fixed md:static inset-y-0 left-0 z-[60] w-64 ${styles.glassCard} m-4 md:mr-0 flex flex-col h-[calc(100vh-2rem)] md:h-[95vh] transform transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-[120%] md:translate-x-0'}`}>
+                        <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+                            <div className="flex items-center gap-2">
+                                <Icon name="heart-pulse" size={24} color={NEON_GREEN} />
+                                <span className={`font-bold text-lg ${styles.neonText}`}>LAB SYSTEM</span>
+                            </div>
+                            <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-gray-400 hover:text-white"><Icon name="xmark" size={20}/></button>
                         </div>
                         <nav className="flex-1 space-y-2 overflow-y-auto pr-2">
-                            <button onClick={() => {setView('dashboard'); setEditingReport(null);}} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'dashboard' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="chart-line" size={18} color={view === 'dashboard' ? NEON_GREEN : 'gray'} /> Dashboard</button>
-                            <button onClick={() => {setView('new_report'); setEditingReport(null); setSelectedReportType(null);}} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'new_report' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="file-lines" size={18} color={view === 'new_report' ? NEON_GREEN : 'gray'} /> Novo Laudo</button>
-                            <button onClick={() => {setView('indicators'); setEditingReport(null);}} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'indicators' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="clipboard-list" size={18} color={view === 'indicators' ? NEON_GREEN : 'gray'} /> Indicadores</button>
-                            <button onClick={() => {setView('fa'); setEditingReport(null);}} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'fa' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="notes-medical" size={18} color={view === 'fa' ? NEON_GREEN : 'gray'} /> F.A (Atendimento)</button>
+                            <button onClick={() => {setView('dashboard'); setEditingReport(null); setIsSidebarOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'dashboard' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="chart-line" size={18} color={view === 'dashboard' ? NEON_GREEN : 'gray'} /> Dashboard</button>
+                            <button onClick={() => {setView('new_report'); setEditingReport(null); setSelectedReportType(null); setIsSidebarOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'new_report' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="file-lines" size={18} color={view === 'new_report' ? NEON_GREEN : 'gray'} /> Novo Laudo</button>
+                            <button onClick={() => {setView('indicators'); setEditingReport(null); setIsSidebarOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'indicators' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="clipboard-list" size={18} color={view === 'indicators' ? NEON_GREEN : 'gray'} /> Indicadores</button>
+                            <button onClick={() => {setView('fa'); setEditingReport(null); setIsSidebarOpen(false);}} className={`w-full flex items-center gap-3 p-3 rounded hover:bg-white/5 transition-colors ${view === 'fa' ? `bg-white/10 border-r-4 border-[${NEON_GREEN}]` : ''}`}><Icon name="notes-medical" size={18} color={view === 'fa' ? NEON_GREEN : 'gray'} /> F.A (Atendimento)</button>
                             
                             <div className="py-2 border-t border-b border-white/5 my-2">
                                 <p className="px-3 text-xs text-gray-500 uppercase font-bold mb-2 flex items-center gap-1"><Icon name="lock" size={10}/> Área Restrita</p>
@@ -880,17 +891,20 @@
                         </div>
                     </aside>
 
-                    <main className="flex-1 p-8 z-10 overflow-y-auto h-screen relative">
-                        <header className="flex justify-between items-center mb-8">
-                            <h2 className={`text-3xl font-bold uppercase tracking-widest ${styles.neonText}`}>
-                                {view === 'dashboard' && 'Visão Geral'}
-                                {view === 'new_report' && (editingReport ? 'Editar Laudo' : 'Emitir Laudo')}
-                                {view === 'indicators' && 'Indicadores de Saúde'}
-                                {view === 'fa' && 'Ficha de Atendimento Ambulatorial'}
-                                {view === 'inventory' && 'Controle de Estoque'}
-                                {view === 'database' && 'Administração de Dados'}
-                            </h2>
-                            <div className="flex items-center gap-4">
+                    <main className="flex-1 p-4 sm:p-8 z-10 overflow-y-auto h-screen relative w-full">
+                        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                            <div className="flex items-center gap-4 w-full sm:w-auto">
+                                <button onClick={() => setIsSidebarOpen(true)} className="md:hidden text-[#39ff14]"><Icon name="bars" size={24}/></button>
+                                <h2 className={`text-xl sm:text-3xl font-bold uppercase tracking-widest ${styles.neonText} truncate`}>
+                                    {view === 'dashboard' && 'Visão Geral'}
+                                    {view === 'new_report' && (editingReport ? 'Editar Laudo' : 'Emitir Laudo')}
+                                    {view === 'indicators' && 'Indicadores de Saúde'}
+                                    {view === 'fa' && 'Ficha de Atendimento Ambulatorial'}
+                                    {view === 'inventory' && 'Controle de Estoque'}
+                                    {view === 'database' && 'Administração de Dados'}
+                                </h2>
+                            </div>
+                            <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end border-t border-white/10 sm:border-0 pt-4 sm:pt-0">
                                 <span className="text-sm text-gray-400">Banco:</span>
                                 <div className={`px-3 py-1 rounded-full border border-[${NEON_GREEN}] text-[${NEON_GREEN}] shadow-[0_0_10px_${NEON_GREEN}] flex items-center justify-center bg-black text-xs font-bold`}>
                                    {dbStatus.toUpperCase()}
@@ -900,7 +914,7 @@
 
                         {view === 'dashboard' && (
                             <div className="space-y-8">
-                                <div className="grid grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                                     <div className={styles.glassCard}>
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="p-3 bg-green-900/30 rounded-lg"><Icon name="file-lines" color={NEON_GREEN} size={20}/></div>
@@ -933,16 +947,18 @@
                                             <p className="text-gray-500 text-center py-8">Nenhum laudo encontrado no banco de dados.</p>
                                         ) : (
                                             reports.slice(0, 8).map((report) => (
-                                                <div key={report.id} className={`flex justify-between items-center p-3 bg-white/5 rounded hover:bg-white/10 transition-colors border-l-2 border-transparent hover:border-[${NEON_GREEN}]`}>
-                                                    <div>
-                                                        <p className="font-bold text-white">{report.patientName}</p>
+                                                <div key={report.id} className={`flex justify-between items-center p-3 bg-white/5 rounded hover:bg-white/10 transition-colors border-l-2 border-transparent hover:border-[${NEON_GREEN}] flex-col sm:flex-row gap-4 sm:gap-0`}>
+                                                    <div className="w-full sm:w-auto text-center sm:text-left">
+                                                        <p className="font-bold text-white truncate">{report.patientName}</p>
                                                         <p className="text-xs text-gray-400">Exame: {report.type?.toUpperCase()} | {report.date}</p>
                                                     </div>
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
                                                         <span className={`px-2 py-1 rounded text-xs font-bold ${report.result?.toUpperCase().includes('POSITIVO') ? 'bg-red-900/50 text-red-400' : 'bg-green-900/50 text-green-400'}`}>{report.result}</span>
-                                                        <button onClick={() => handleEditReport(report)} className="p-2 hover:text-white text-blue-400" title="Editar Laudo"><Icon name="pen-to-square" size={16}/></button>
-                                                        <button onClick={() => handleDeleteReport(report.id)} className="p-2 hover:text-white text-red-500" title="Excluir Laudo"><Icon name="trash-can" size={16}/></button>
-                                                        <button onClick={() => setPrintData(report)} className="p-2 hover:text-white text-gray-400" title="Imprimir Laudo"><Icon name="print" size={16}/></button>
+                                                        <div className="flex gap-2">
+                                                            <button onClick={() => handleEditReport(report)} className="p-2 hover:text-white text-blue-400" title="Editar Laudo"><Icon name="pen-to-square" size={16}/></button>
+                                                            <button onClick={() => handleDeleteReport(report.id)} className="p-2 hover:text-white text-red-500" title="Excluir Laudo"><Icon name="trash-can" size={16}/></button>
+                                                            <button onClick={() => setPrintData(report)} className="p-2 hover:text-white text-gray-400" title="Imprimir Laudo"><Icon name="print" size={16}/></button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))
@@ -957,13 +973,13 @@
                                 <div className={styles.glassCard}>
                                     <h3 className={`text-xl font-bold text-[${NEON_GREEN}] mb-6 flex items-center gap-2`}><Icon name="plus" size={18}/> {editingIndicator ? 'Editar Indicador' : 'Registrar Novo Indicador'}</h3>
                                     <form onSubmit={handleSaveIndicator} className="space-y-6" key={editingIndicator ? editingIndicator.id : 'new'}>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                                             <div><label className="text-xs text-gray-400 uppercase">Data</label><input name="date" defaultValue={editingIndicator ? editingIndicator.date : new Date().toLocaleDateString('pt-BR')} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                             <div><label className="text-xs text-gray-400 uppercase">G'MUS *</label><input name="gmus" required defaultValue={editingIndicator?.gmus} className={styles.input} /></div>
                                             <div><label className="text-xs text-gray-400 uppercase">PRESSÃO</label><input name="pressure" defaultValue={editingIndicator?.pressure} className={styles.input} /></div>
                                             <div><label className="text-xs text-gray-400 uppercase">HGT</label><input name="hgt" defaultValue={editingIndicator?.hgt} className={styles.input} /></div>
                                         </div>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             <div><label className="text-xs text-gray-400 uppercase">PESO</label><input name="weight" defaultValue={editingIndicator?.weight} className={styles.input} /></div>
                                             <div><label className="text-xs text-gray-400 uppercase">ALTURA</label><input name="height" defaultValue={editingIndicator?.height} className={styles.input} /></div>
                                             <div><label className="text-xs text-gray-400 uppercase">PROFISSIONAL *</label><input name="professional" required defaultValue={editingIndicator?.professional} className={styles.input} /></div>
@@ -976,12 +992,12 @@
                                 </div>
 
                                 <div className={styles.glassCard}>
-                                    <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-gray-700 pb-4 gap-4">
                                         <h3 className="text-lg font-bold text-white">Registros Salvos</h3>
-                                        <button onClick={exportIndicatorsCSV} className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded flex items-center gap-2 text-sm"><Icon name="download" size={14}/> CSV</button>
+                                        <button onClick={exportIndicatorsCSV} className="w-full sm:w-auto px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded flex justify-center items-center gap-2 text-sm"><Icon name="download" size={14}/> CSV</button>
                                     </div>
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left border-collapse text-sm">
+                                    <div className="overflow-x-auto w-full">
+                                        <table className="w-full text-left border-collapse text-sm whitespace-nowrap">
                                             <thead className="text-gray-400 uppercase border-b border-gray-800">
                                                 <tr><th className="py-3 px-2">Data</th><th className="py-3 px-2">G'MUS</th><th className="py-3 px-2">Pressão</th><th className="py-3 px-2">HGT</th><th className="py-3 px-2">Peso</th><th className="py-3 px-2">Altura</th><th className="py-3 px-2">Profissional</th><th className="py-3 px-2 text-right">Ação</th></tr>
                                             </thead>
@@ -1011,13 +1027,13 @@
                                     <h3 className={`text-xl font-bold text-[${NEON_GREEN}]`}>Nova Ficha de Atendimento (F.A)</h3>
                                 </div>
                                 <form onSubmit={handleFASubmit} className="space-y-6">
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        <div><label className="text-xs text-gray-400 uppercase">Data</label><input name="date" value={new Date().toLocaleDateString('pt-BR')} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                        <div><label className="text-xs text-gray-400 uppercase">Data</label><input name="date" defaultValue={new Date().toLocaleDateString('pt-BR')} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">G'MUS</label><input name="gmus" className={styles.input} /></div>
-                                        <div className="col-span-2"><label className="text-xs text-gray-400 uppercase">Nome do Paciente</label><input required name="patientName" className={styles.input} /></div>
+                                        <div className="md:col-span-2"><label className="text-xs text-gray-400 uppercase">Nome do Paciente</label><input required name="patientName" className={styles.input} /></div>
                                     </div>
 
-                                    <div className="grid grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
                                             <label className="text-xs text-gray-400 uppercase">Identidade/CPF</label>
                                             <input required name="document" className={styles.input} />
@@ -1034,7 +1050,7 @@
 
                                     <div className="border border-white/10 p-4 rounded-xl space-y-4">
                                         <h4 className={`text-xs font-bold text-[${NEON_GREEN}]`}>SINAIS VITAIS E ANTROPOMETRIA</h4>
-                                        <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
                                             <input name="pa" placeholder="PA" className={styles.input} />
                                             <input name="fc" placeholder="FC" className={styles.input} />
                                             <input name="fr" placeholder="FR" className={styles.input} />
@@ -1042,7 +1058,7 @@
                                             <input name="sato2" placeholder="SATO2" className={styles.input} />
                                             <input name="hgt" placeholder="HGT" className={styles.input} />
                                             <input name="weight" placeholder="PESO" className={styles.input} />
-                                            <input name="height" placeholder="ESTATURA" className={styles.input} />
+                                            <input name="height" placeholder="ESTURA" className={styles.input} />
                                         </div>
                                     </div>
                                     
@@ -1070,19 +1086,19 @@
                         )}
 
                         {view === 'new_report' && !selectedReportType && (
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                                 {[
                                     { id: 'dengue_covid', title: 'Dengue + Covid-19', icon: 'viruses', desc: 'Painel Viral Combinado' },
                                     { id: 'dengue', title: 'Dengue NS1', icon: 'syringe', desc: 'Teste rápido imunocromatográfico' },
                                     { id: 'covid', title: 'Covid-19', icon: 'temperature-half', desc: 'Antígeno (Swab Nasal/Nasofaringeo)' },
                                     { id: 'hcg', title: 'HCG (Gravidez)', icon: 'baby', desc: 'Detecção na urina' }
                                 ].map((type) => (
-                                    <button key={type.id} onClick={() => setSelectedReportType(type.id)} className={`${styles.glassCard} hover:scale-105 transition-transform text-center flex flex-col items-center justify-center gap-4 py-12 group`}>
+                                    <button key={type.id} onClick={() => setSelectedReportType(type.id)} className={`${styles.glassCard} hover:scale-105 transition-transform text-center flex flex-col items-center justify-center gap-4 py-8 group`}>
                                         <div className={`p-4 rounded-full border border-gray-600 group-hover:border-[${NEON_GREEN}] group-hover:shadow-[0_0_15px_${NEON_GREEN}] transition-all`}>
-                                            <Icon name={type.icon} size={40} className={`text-white group-hover:text-[${NEON_GREEN}]`} />
+                                            <Icon name={type.icon} size={32} className={`text-white group-hover:text-[${NEON_GREEN}]`} />
                                         </div>
-                                        <h3 className="text-xl font-bold">{type.title}</h3>
-                                        <p className="text-sm text-gray-400">{type.desc}</p>
+                                        <h3 className="text-lg font-bold">{type.title}</h3>
+                                        <p className="text-xs text-gray-400">{type.desc}</p>
                                     </button>
                                 ))}
                             </div>
@@ -1104,18 +1120,18 @@
 
                             return (
                             <div className={styles.glassCard}>
-                                <div className="flex items-center gap-2 mb-6 border-b border-gray-700 pb-4">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 border-b border-gray-700 pb-4">
                                     <button onClick={() => { setSelectedReportType(null); setEditingReport(null); }} className="text-gray-400 hover:text-white"><Icon name="arrow-left" size={16}/> Voltar</button>
-                                    <h3 className={`text-xl font-bold text-[${NEON_GREEN}] ml-4`}>{editingReport ? 'Editar Laudo: DENGUE + COVID-19' : 'Novo Laudo: PAINEL DENGUE + COVID-19'}</h3>
+                                    <h3 className={`text-lg sm:text-xl font-bold text-[${NEON_GREEN}] sm:ml-4`}>{editingReport ? 'Editar Laudo: DENGUE + COVID-19' : 'Novo Laudo: PAINEL DENGUE + COVID-19'}</h3>
                                 </div>
                                 <form onSubmit={handleReportSubmit} className="space-y-6" key={editingReport ? editingReport.id : 'new-dengue-covid'}>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div><label className="text-xs text-gray-400 uppercase">Nome do Paciente</label><input required name="patientName" defaultValue={editingReport?.patientName || ''} className={styles.input} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Identidade/CPF</label><input required name="document" defaultValue={editingReport?.document || ''} className={styles.input} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Data de Nascimento</label><input required name="dob" type="date" defaultValue={editingReport?.dob || ''} className={styles.input} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Sexo</label><select name="sex" defaultValue={editingReport?.sex?.toUpperCase() || 'MASCULINO'} className={styles.input}><option>MASCULINO</option><option>FEMININO</option></select></div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div><label className="text-xs text-gray-400 uppercase">Unidade de Realização</label><input name="unit" value="UBS SANTO AFONSO" readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Início dos Sintomas</label><input required name="symptomsDate" type="date" defaultValue={editingReport?.symptomsDate || ''} className={styles.input} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Data da Coleta</label><input required name="collectionDate" type="date" value={editingReport?.collectionDate || new Date().toISOString().split('T')[0]} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
@@ -1126,7 +1142,7 @@
                                         <div className="border border-gray-700 p-4 rounded bg-white/5">
                                             <h4 className="text-sm font-bold text-gray-300 mb-4 border-b border-gray-600 pb-2 flex items-center gap-2"><Icon name="syringe"/> TESTE DENGUE NS1</h4>
                                             <div className="space-y-4">
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div><label className="text-xs text-gray-400 uppercase">Lote Dengue</label><input required name="dengueLot" value={p.dengueLot || availableDengueKit?.lot || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                                     <div><label className="text-xs text-gray-400 uppercase">Val. Dengue</label><input required name="dengueValidity" value={p.dengueValidity || availableDengueKit?.validity || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                                 </div>
@@ -1145,13 +1161,13 @@
                                             <h4 className="text-sm font-bold text-gray-300 mb-4 border-b border-gray-600 pb-2 flex items-center gap-2"><Icon name="temperature-half"/> TESTE COVID-19</h4>
                                             <div className="space-y-4">
                                                 <div><label className="text-xs text-gray-400 uppercase">Fabricante</label><input name="covidManufacturer" value="OUTROS" readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div><label className="text-xs text-gray-400 uppercase">Lote Covid</label><input required name="covidLot" value={p.covidLot || availableCovidKit?.lot || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                                     <div><label className="text-xs text-gray-400 uppercase">Val. Covid</label><input required name="covidValidity" value={p.covidValidity || availableCovidKit?.validity || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                                 </div>
                                                 <div>
                                                     <label className="text-xs text-gray-400 mb-1 block uppercase">Tipo de Amostra</label>
-                                                    <div className="flex gap-4 text-sm">
+                                                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-sm">
                                                         <label className="flex items-center gap-2"><input type="radio" name="covidSampleType" value="nasofaringeo" defaultChecked={!editingReport || editingReport.sampleType?.toUpperCase() === 'NASOFARINGEO'} className={`accent-[${NEON_GREEN}]`}/> NASOFARÍNGEO</label>
                                                         <label className="flex items-center gap-2"><input type="radio" name="covidSampleType" value="nasal" defaultChecked={editingReport?.sampleType?.toUpperCase() === 'NASAL'} className={`accent-[${NEON_GREEN}]`}/> NASAL</label>
                                                     </div>
@@ -1180,13 +1196,13 @@
                                     <h3 className={`text-xl font-bold text-[${NEON_GREEN}] ml-4`}>{editingReport ? 'Editar Laudo: DENGUE NS1' : 'Novo Laudo: DENGUE NS1'}</h3>
                                 </div>
                                 <form onSubmit={handleReportSubmit} className="space-y-6" key={editingReport ? editingReport.id : 'new-dengue'}>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div><label className="text-xs text-gray-400 uppercase">Nome do Paciente</label><input required name="patientName" defaultValue={editingReport?.patientName || ''} className={styles.input} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Identidade/CPF</label><input required name="document" defaultValue={editingReport?.document || ''} className={styles.input} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Data de Nascimento</label><input required name="dob" type="date" defaultValue={editingReport?.dob || ''} className={styles.input} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Sexo</label><select name="sex" defaultValue={editingReport?.sex?.toUpperCase() || 'MASCULINO'} className={styles.input}><option>MASCULINO</option><option>FEMININO</option></select></div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div><label className="text-xs text-gray-400 uppercase">Unidade de Realização</label><input name="unit" value="UBS SANTO AFONSO" readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Início dos Sintomas</label><input required name="symptomsDate" type="date" defaultValue={editingReport?.symptomsDate || ''} className={styles.input} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Data da Coleta</label><input required name="collectionDate" type="date" value={editingReport?.collectionDate || new Date().toISOString().split('T')[0]} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
@@ -1194,14 +1210,14 @@
                                     </div>
                                     <div className="border border-gray-700 p-4 rounded">
                                         <h4 className="text-sm font-bold text-gray-300 mb-2">Dados do Kit</h4>
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div><label className="text-xs text-gray-400 uppercase">Lote</label><input required name="lot" value={editingReport?.lot || availableKit?.lot || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                             <div><label className="text-xs text-gray-400 uppercase">Validade</label><input required name="validity" value={editingReport?.validity || availableKit?.validity || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                         </div>
                                     </div>
                                     <div>
                                         <label className={`block text-sm font-bold mb-2 text-[${NEON_GREEN}]`}>Resultado</label>
-                                        <div className="flex gap-6">
+                                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
                                             <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Positivo" defaultChecked={editingReport ? editingReport.result?.toUpperCase() === 'POSITIVO' : false} className={`accent-[${NEON_GREEN}]`}/> POSITIVO</label>
                                             <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Negativo" defaultChecked={editingReport ? editingReport.result?.toUpperCase() === 'NEGATIVO' : true} className={`accent-[${NEON_GREEN}]`}/> NEGATIVO</label>
                                             <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Inconclusivo" defaultChecked={editingReport ? editingReport.result?.toUpperCase() === 'INCONCLUSIVO' : false} className={`accent-[${NEON_GREEN}]`}/> INCONCLUSIVO</label>
@@ -1219,27 +1235,21 @@
                                     <h3 className={`text-xl font-bold text-[${NEON_GREEN}] ml-4`}>{editingReport ? 'Editar Laudo: COVID-19' : 'Novo Laudo: COVID-19'}</h3>
                                 </div>
                                 <form onSubmit={handleReportSubmit} className="space-y-6" key={editingReport ? editingReport.id : 'new-covid'}>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div><label className="text-xs text-gray-400 uppercase">Nome do Paciente</label><input required name="patientName" defaultValue={editingReport?.patientName || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400 uppercase">Identidade/CPF</label><input required name="document" defaultValue={editingReport?.document || ''} className={styles.input} /></div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="md:col-span-2"><label className="text-xs text-gray-400 uppercase">Nome do Paciente</label><input required name="patientName" defaultValue={editingReport?.patientName || ''} className={styles.input} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Data de Nascimento</label><input required name="dob" type="date" defaultValue={editingReport?.dob || ''} className={styles.input} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Sexo</label><select name="sex" defaultValue={editingReport?.sex?.toUpperCase() || 'MASCULINO'} className={styles.input}><option>MASCULINO</option><option>FEMININO</option></select></div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div><label className="text-xs text-gray-400 uppercase">Unidade de Realização</label><input name="unit" value="UBS SANTO AFONSO" readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
-                                        <div><label className="text-xs text-gray-400 uppercase">Início dos Sintomas</label><input required name="symptomsDate" type="date" defaultValue={editingReport?.symptomsDate || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400 uppercase">Data da Coleta</label><input required name="collectionDate" type="date" value={editingReport?.collectionDate || new Date().toISOString().split('T')[0]} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
-                                        <div><label className="text-xs text-gray-400 uppercase">Nome do Profissional</label><input required name="professionalName" defaultValue={editingReport?.professionalName || ''} className={styles.input} /></div>
+                                        <div className="md:col-span-2"><label className="text-xs text-gray-400 uppercase">Nome do Profissional</label><input required name="professionalName" defaultValue={editingReport?.professionalName || ''} className={styles.input} /></div>
                                     </div>
                                     <div className="border border-gray-700 p-4 rounded">
                                         <h4 className="text-sm font-bold text-gray-300 mb-2">Dados do Kit</h4>
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div><label className="text-xs text-gray-400 uppercase">Fabricante</label><input name="manufacturer" value="OUTROS" readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                             <div><label className="text-xs text-gray-400 uppercase">Lote</label><input required name="lot" value={editingReport?.lot || availableKit?.lot || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                         </div>
                                         <div className="mt-4">
                                             <label className="text-xs text-gray-400 mb-1 block uppercase">Tipo de Amostra</label>
-                                            <div className="flex gap-4">
+                                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                                                 <label className="flex items-center gap-2"><input type="radio" name="sampleType" value="nasofaringeo" defaultChecked={!editingReport || editingReport.sampleType?.toUpperCase() === 'NASOFARINGEO'} className={`accent-[${NEON_GREEN}]`}/> SWAB NASOFARÍNGEO</label>
                                                 <label className="flex items-center gap-2"><input type="radio" name="sampleType" value="nasal" defaultChecked={editingReport?.sampleType?.toUpperCase() === 'NASAL'} className={`accent-[${NEON_GREEN}]`}/> SWAB NASAL</label>
                                             </div>
@@ -1247,7 +1257,7 @@
                                     </div>
                                     <div>
                                         <label className={`block text-sm font-bold mb-2 text-[${NEON_GREEN}]`}>Resultado</label>
-                                        <div className="flex gap-6">
+                                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
                                             <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Positivo" defaultChecked={editingReport ? editingReport.result?.toUpperCase() === 'POSITIVO' : false} className={`accent-[${NEON_GREEN}]`}/> POSITIVO</label>
                                             <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Negativo" defaultChecked={!editingReport || editingReport.result?.toUpperCase() === 'NEGATIVO'} className={`accent-[${NEON_GREEN}]`}/> NEGATIVO</label>
                                         </div>
@@ -1264,21 +1274,20 @@
                                     <h3 className={`text-xl font-bold text-[${NEON_GREEN}] ml-4`}>{editingReport ? 'Editar Laudo: HCG (Gravidez)' : 'Novo Laudo: HCG (Gravidez)'}</h3>
                                 </div>
                                 <form onSubmit={handleReportSubmit} className="space-y-6" key={editingReport ? editingReport.id : 'new-hcg'}>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div><label className="text-xs text-gray-400 uppercase">Nome do Paciente</label><input required name="patientName" defaultValue={editingReport?.patientName || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400 uppercase">Identidade/CPF</label><input required name="document" defaultValue={editingReport?.document || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Identidade</label><input required name="document" defaultValue={editingReport?.document || ''} className={styles.input} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Data de Nascimento</label><input required name="dob" type="date" defaultValue={editingReport?.dob || ''} className={styles.input} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Prontuário</label><input required name="recordId" defaultValue={editingReport?.recordId || ''} className={styles.input} /></div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4 mt-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                         <div><label className="text-xs text-gray-400 uppercase">Unidade de Realização</label><input name="unit" value="UBS SANTO AFONSO" readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
-                                        <div><label className="text-xs text-gray-400 uppercase">Início dos Sintomas</label><input required name="symptomsDate" type="date" defaultValue={editingReport?.symptomsDate || ''} className={styles.input} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Data da Coleta</label><input required name="collectionDate" type="date" value={editingReport?.collectionDate || new Date().toISOString().split('T')[0]} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
-                                        <div><label className="text-xs text-gray-400 uppercase">Nome do Profissional</label><input required name="professionalName" defaultValue={editingReport?.professionalName || ''} className={styles.input} /></div>
+                                        <div className="md:col-span-2"><label className="text-xs text-gray-400 uppercase">Nome do Profissional</label><input required name="professionalName" defaultValue={editingReport?.professionalName || ''} className={styles.input} /></div>
                                     </div>
                                     <div className="border border-gray-700 p-4 rounded">
                                         <h4 className="text-sm font-bold text-gray-300 mb-2">Dados do Kit</h4>
-                                        <div className="grid grid-cols-3 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             <div><label className="text-xs text-gray-400 uppercase">Marca/Teste</label><input name="brand" defaultValue="DETECT HCG" className={styles.input} /></div>
                                             <div><label className="text-xs text-gray-400 uppercase">Lote</label><input required name="lot" value={editingReport?.lot || availableKit?.lot || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
                                             <div><label className="text-xs text-gray-400 uppercase">Validade</label><input required name="validity" value={editingReport?.validity || availableKit?.validity || ''} readOnly className={`${styles.input} opacity-50 cursor-not-allowed`} /></div>
@@ -1286,7 +1295,7 @@
                                     </div>
                                     <div>
                                         <label className={`block text-sm font-bold mb-2 text-[${NEON_GREEN}]`}>Resultado</label>
-                                        <div className="flex gap-6">
+                                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
                                             <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Positivo" defaultChecked={editingReport ? editingReport.result?.toUpperCase() === 'POSITIVO' : false} className={`accent-[${NEON_GREEN}]`}/> POSITIVO (&gt; 25mUI/mL)</label>
                                             <label className="flex items-center gap-2 cursor-pointer"><input type="radio" name="result" value="Negativo" defaultChecked={!editingReport || editingReport.result?.toUpperCase() === 'NEGATIVO'} className={`accent-[${NEON_GREEN}]`}/> NEGATIVO (&lt; 25mUI/mL)</label>
                                         </div>
@@ -1298,44 +1307,46 @@
 
                         {view === 'inventory' && (
                             <div className={styles.glassCard}>
-                                <div className="flex justify-between mb-6">
-                                    <div className="relative w-64">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                                    <div className="relative w-full sm:w-64">
                                         <Icon name="magnifying-glass" size={18} className="absolute left-3 top-3 text-gray-500" />
                                         <input type="text" placeholder="Buscar item..." className={`${styles.input} pl-10`} />
                                     </div>
-                                    <button onClick={() => handleOpenInventoryModal()} className={`px-4 py-2 ${styles.neonButton} flex items-center gap-2 text-sm`}><Icon name="plus" size={16} /> Adicionar Item</button>
+                                    <button onClick={() => handleOpenInventoryModal()} className={`w-full sm:w-auto px-4 py-3 sm:py-2 ${styles.neonButton} flex justify-center items-center gap-2 text-sm`}><Icon name="plus" size={16} /> Adicionar Item</button>
                                 </div>
-                                <table className="w-full text-left border-collapse">
-                                    <thead><tr className="text-gray-400 border-b border-gray-700 text-sm uppercase"><th className="py-3">Item</th><th className="py-3">Lote</th><th className="py-3">Validade</th><th className="py-3">Qtd</th><th className="py-3">Status</th><th className="py-3 text-right pr-4">Ações</th></tr></thead>
-                                    <tbody>
-                                        {inventory.length === 0 ? (<tr><td colSpan="6" className="py-8 text-center text-gray-500">Nenhum item no estoque. Adicione um novo item.</td></tr>) : (
-                                            inventory.map((item) => {
-                                                const status = getStockStatus(item);
-                                                return (
-                                                    <tr key={item.id} className="border-b border-gray-800 hover:bg-white/5 transition-colors">
-                                                        <td className="py-4 font-bold max-w-[200px]">{item.name}</td>
-                                                        <td className="py-4 text-sm text-gray-400">{item.lot || '-'}</td>
-                                                        <td className="py-4 text-sm text-gray-400">{item.validity ? new Date(item.validity).toLocaleDateString('pt-BR') : '-'}</td>
-                                                        <td className="py-4 font-mono text-lg">{item.quantity}</td>
-                                                        <td className={`py-4 flex items-center gap-2 ${status.color}`}><Icon name={status.icon} size={16}/> {status.text}</td>
-                                                        <td className="py-4 text-right">
-                                                            <div className="flex justify-end gap-3">
-                                                                <button onClick={() => handleOpenInventoryModal(item)} className="text-blue-400 hover:text-white" title="Editar"><Icon name="pen-to-square" size={18}/></button>
-                                                                <button onClick={() => handleDeleteInventoryItem(item.id)} className="text-red-500 hover:text-white" title="Excluir"><Icon name="trash-can" size={18}/></button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })
-                                        )}
-                                    </tbody>
-                                </table>
+                                <div className="overflow-x-auto w-full">
+                                    <table className="w-full text-left border-collapse whitespace-nowrap text-sm">
+                                        <thead><tr className="text-gray-400 border-b border-gray-700 uppercase"><th className="py-3 pr-4">Item</th><th className="py-3 px-2">Lote</th><th className="py-3 px-2">Validade</th><th className="py-3 px-2">Qtd</th><th className="py-3 px-2">Status</th><th className="py-3 pl-2 text-right">Ações</th></tr></thead>
+                                        <tbody>
+                                            {inventory.length === 0 ? (<tr><td colSpan="6" className="py-8 text-center text-gray-500">Nenhum item no estoque. Adicione um novo item.</td></tr>) : (
+                                                inventory.map((item) => {
+                                                    const status = getStockStatus(item);
+                                                    return (
+                                                        <tr key={item.id} className="border-b border-gray-800 hover:bg-white/5 transition-colors">
+                                                            <td className="py-4 pr-4 font-bold max-w-[200px] truncate">{item.name}</td>
+                                                            <td className="py-4 px-2 text-gray-400">{item.lot || '-'}</td>
+                                                            <td className="py-4 px-2 text-gray-400">{item.validity ? new Date(item.validity).toLocaleDateString('pt-BR') : '-'}</td>
+                                                            <td className="py-4 px-2 font-mono text-lg">{item.quantity}</td>
+                                                            <td className={`py-4 px-2 flex items-center gap-2 ${status.color}`}><Icon name={status.icon} size={16}/> {status.text}</td>
+                                                            <td className="py-4 pl-2 text-right">
+                                                                <div className="flex justify-end gap-3">
+                                                                    <button onClick={() => handleOpenInventoryModal(item)} className="text-blue-400 hover:text-white" title="Editar"><Icon name="pen-to-square" size={18}/></button>
+                                                                    <button onClick={() => handleDeleteInventoryItem(item.id)} className="text-red-500 hover:text-white" title="Excluir"><Icon name="trash-can" size={18}/></button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
 
                                 {showInventoryModal && (
-                                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                                    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
                                         <div className={`${styles.glassCard} w-full max-w-lg relative animate-in fade-in zoom-in duration-300`}>
                                             <button onClick={() => setShowInventoryModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white"><Icon name="xmark" size={20}/></button>
-                                            <h2 className="text-2xl font-bold mb-6 text-white border-b border-gray-700 pb-2">{editingItem ? 'Editar Item' : 'Novo Item de Estoque'}</h2>
+                                            <h2 className="text-xl sm:text-2xl font-bold mb-6 text-white border-b border-gray-700 pb-2">{editingItem ? 'Editar Item' : 'Novo Item de Estoque'}</h2>
                                             <form onSubmit={handleSaveInventoryItem} className="space-y-4">
                                                 <div><label className="text-xs text-gray-400 uppercase">Nome do Kit / Material</label><input required name="name" defaultValue={editingItem?.name} className={styles.input} placeholder="Ex: Kit Dengue NS1" /></div>
                                                 <div>
@@ -1344,11 +1355,11 @@
                                                         <option value="dengue">DENGUE</option><option value="covid">COVID-19</option><option value="hcg">HCG (GRAVIDEZ)</option><option value="outro">OUTRO / GERAL</option>
                                                     </select>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div><label className="text-xs text-gray-400 uppercase flex items-center gap-1"><Icon name="hashtag" size={12}/> Lote</label><input required name="lot" defaultValue={editingItem?.lot} className={styles.input} placeholder="Ex: A2023" /></div>
                                                     <div><label className="text-xs text-gray-400 uppercase flex items-center gap-1"><Icon name="calendar" size={12}/> Validade</label><input required name="validity" type="date" defaultValue={editingItem?.validity} className={styles.input} /></div>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div><label className="text-xs text-gray-400 uppercase">Quantidade Atual</label><input required name="quantity" type="number" min="0" defaultValue={editingItem?.quantity || 0} className={styles.input} /></div>
                                                     <div><label className="text-xs text-gray-400 uppercase">Estoque Mínimo (Alerta)</label><input required name="min" type="number" min="0" defaultValue={editingItem?.min || 10} className={styles.input} /></div>
                                                 </div>
@@ -1365,18 +1376,18 @@
 
                         {view === 'database' && (
                             <div className={styles.glassCard}>
-                                <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-white/10 pb-4">
                                     <div>
-                                        <h2 className="text-2xl font-bold text-white">Banco de Dados (Supabase)</h2>
-                                        <p className="text-gray-400 text-sm mt-1">Registros brutos e auditoria de IDs</p>
+                                        <h2 className="text-xl sm:text-2xl font-bold text-white">Banco de Dados (Supabase)</h2>
+                                        <p className="text-gray-400 text-xs sm:text-sm mt-1">Registros brutos e auditoria de IDs</p>
                                     </div>
-                                    <button onClick={exportData} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded flex items-center gap-2"><Icon name="download" size={16}/> Exportar JSON</button>
+                                    <button onClick={exportData} className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded flex justify-center items-center gap-2"><Icon name="download" size={16}/> Exportar JSON</button>
                                 </div>
                                 <div className="space-y-8">
                                     <div>
                                         <h3 className={`text-[${NEON_GREEN}] font-bold uppercase mb-4 flex items-center gap-2`}><Icon name="file-lines" size={16}/> Tabela de Laudos ({reports.length})</h3>
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full text-left text-xs text-gray-300">
+                                        <div className="overflow-x-auto w-full">
+                                            <table className="w-full text-left text-xs text-gray-300 whitespace-nowrap">
                                                 <thead className="bg-white/5 uppercase text-gray-500"><tr><th className="p-2">ID (Doc)</th><th className="p-2">Data</th><th className="p-2">Paciente</th><th className="p-2">Tipo</th><th className="p-2">Resultado</th></tr></thead>
                                                 <tbody className="divide-y divide-white/5">
                                                     {reports.map(r => (<tr key={r.id} className="hover:bg-white/5"><td className="p-2 font-mono text-white/50">{r.id}</td><td className="p-2">{r.date}</td><td className="p-2 font-bold text-white">{r.patientName}</td><td className="p-2 uppercase">{r.type}</td><td className="p-2">{r.result}</td></tr>))}
@@ -1386,8 +1397,8 @@
                                     </div>
                                     <div>
                                         <h3 className={`text-[${NEON_GREEN}] font-bold uppercase mb-4 flex items-center gap-2`}><Icon name="box" size={16}/> Tabela de Inventário ({inventory.length})</h3>
-                                        <div className="overflow-x-auto">
-                                            <table className="w-full text-left text-xs text-gray-300">
+                                        <div className="overflow-x-auto w-full">
+                                            <table className="w-full text-left text-xs text-gray-300 whitespace-nowrap">
                                                 <thead className="bg-white/5 uppercase text-gray-500"><tr><th className="p-2">ID (Doc)</th><th className="p-2">Item</th><th className="p-2">Lote</th><th className="p-2">Qtd</th></tr></thead>
                                                 <tbody className="divide-y divide-white/5">
                                                     {inventory.map(i => (<tr key={i.id} className="hover:bg-white/5"><td className="p-2 font-mono text-white/50">{i.id}</td><td className="p-2 font-bold text-white">{i.name}</td><td className="p-2">{i.lot}</td><td className="p-2">{i.quantity}</td></tr>))}
