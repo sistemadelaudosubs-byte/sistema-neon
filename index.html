@@ -21,6 +21,17 @@
     <!-- Babel (Tradutor de React para o Navegador) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
+    <!-- Configuração Explícita do Babel para Modo Clássico (Evita erros de "import") -->
+    <script>
+        if (window.Babel) {
+            window.Babel.registerPreset('react-classic', {
+                presets: [
+                    [window.Babel.availablePresets.react, { runtime: 'classic' }]
+                ]
+            });
+        }
+    </script>
+    
     <!-- Supabase (Banco de Dados) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -38,7 +49,11 @@
     <div id="root"></div>
 
     <!-- CÓDIGO DO SISTEMA -->
-    <script type="text/babel">
+    <script type="text/babel" data-presets="react-classic">
+/* @jsxRuntime classic */
+/* @jsx React.createElement */
+/* @jsxFrag React.Fragment */
+
         const { useState, useEffect, useMemo, useRef } = React;
 
         // ============================================================================
@@ -632,6 +647,7 @@
                     technician: data.professionalName || 'ADMINISTRADOR (TÉCNICO RESP.)'
                 };
 
+                // Formatação especial para empacotar os dois laudos no formato do banco existente
                 if (selectedReportType === 'dengue_covid') {
                     fullData.result = `DENGUE: ${data.dengueResult} / COVID: ${data.covidResult}`;
                     fullData.lot = `D: ${data.dengueLot} / C: ${data.covidLot}`;
@@ -1276,7 +1292,7 @@
                                 <form onSubmit={handleReportSubmit} className="space-y-6" key={editingReport ? editingReport.id : 'new-hcg'}>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div><label className="text-xs text-gray-400 uppercase">Nome do Paciente</label><input required name="patientName" defaultValue={editingReport?.patientName || ''} className={styles.input} /></div>
-                                        <div><label className="text-xs text-gray-400 uppercase">Identidade</label><input required name="document" defaultValue={editingReport?.document || ''} className={styles.input} /></div>
+                                        <div><label className="text-xs text-gray-400 uppercase">Identidade/CPF</label><input required name="document" defaultValue={editingReport?.document || ''} className={styles.input} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Data de Nascimento</label><input required name="dob" type="date" defaultValue={editingReport?.dob || ''} className={styles.input} /></div>
                                         <div><label className="text-xs text-gray-400 uppercase">Prontuário</label><input required name="recordId" defaultValue={editingReport?.recordId || ''} className={styles.input} /></div>
                                     </div>
